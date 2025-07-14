@@ -1,3 +1,9 @@
+
+/* Default state for mobile-only group areas (hidden on desktop). */
+.mobile-only-group {
+  display: none;
+}
+
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .modal-content, .modal-mini-map {

@@ -245,7 +245,3 @@ p {
   }
 }
 
-/* Default state for mobile-only group areas (hidden on desktop). */
-.mobile-only-group {
-  display: none;
-}
