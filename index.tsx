@@ -86,7 +86,6 @@ async function runApp() {
       const clickedGroupArea = target.closest('.stall-group-area') as HTMLElement | null;
       const clickedStallArea = target.closest('.stall-area:not(.stall-group-area)') as HTMLElement | null;
 
-console.log('clickedGroupArea',clickedGroupArea?.dataset.rowId)
       if (clickedGroupArea?.dataset.rowId) {
         const rowId = clickedGroupArea.dataset.rowId;
         // Find the first stall in the row (top-most for vertical rows) and open its modal directly.
@@ -94,7 +93,6 @@ console.log('clickedGroupArea',clickedGroupArea?.dataset.rowId)
           .filter(s => s.id.startsWith(rowId))
           .sort((a, b) => b.num - a.num); // Sort by number descending.
 
-// console.log(clickedGroupArea, rowId, stallsInRow)
         if (stallsInRow.length > 0) {
           openModal(stallsInRow[0].id, context);
         }
@@ -103,7 +101,6 @@ console.log('clickedGroupArea',clickedGroupArea?.dataset.rowId)
       }
     };
 
-console.log('elements.magnifierWrapper', elements.magnifierWrapper)
     const magnifierController = createMagnifier(
       elements.mapContainer,
       elements.mapImage,
@@ -133,6 +130,9 @@ console.log('elements.magnifierWrapper', elements.magnifierWrapper)
     elements.searchInput.addEventListener('input', () => {
       const searchTerm = elements.searchInput.value.toLowerCase().trim();
       
+      // A set to track which rows (by ID) have at least one matching stall.
+      const matchingRowIds = new Set<string>();
+
       allStalls.forEach(stall => {
         const mainElement = document.querySelector(`.stall-area[data-stall-id="${stall.id}"]`) as HTMLElement;
         if (!mainElement) return;
@@ -148,7 +148,24 @@ console.log('elements.magnifierWrapper', elements.magnifierWrapper)
             hasPromoUserMatch;
         }
         
+        // 1. Update the class on the individual stall element.
+        // This is crucial for the magnifier and the modal views to reflect the search result,
+        // even if the element is hidden on the main map (e.g., for grouped rows).
         updateStallClass(mainElement, 'is-search-match', isMatch, magnifierController, uiState);
+
+        // 2. If a match is found, record its row ID.
+        if (isMatch) {
+          matchingRowIds.add(stall.id.substring(0, 1));
+        }
+      });
+
+      // 3. Update the visible group area elements based on whether any stall in that row matched.
+      locateStalls.forEach(row => {
+          const groupAreaElements = document.querySelectorAll(`.stall-group-area[data-row-id="${row.id}"]`) as NodeList;
+          groupAreaElements.forEach((groupAreaElement: Node) => {
+              const hasMatch = matchingRowIds.has(row.id);
+              (groupAreaElement as HTMLElement).classList.toggle('is-search-match', hasMatch);  
+          })
       });
     });
 

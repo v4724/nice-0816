@@ -2,7 +2,7 @@
 #map-container {
   position: relative;
   width: 100%;
-  max-width: 1000px; /* Original image width */
+  max-width: 1440px; /* Original image width */
   margin: 20px auto;
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -45,20 +45,20 @@
   color: rgba(0, 0, 0, 0.8);
 }
 
-.stall-area:hover {
-  background-color: rgba(255, 69, 0, 0.8);
-  border-color: var(--primary-color);
-  color: white;
-  text-shadow: none;
-}
-
 .stall-area.is-search-match {
   border: 1px solid rgba(184, 129, 225, 1);; /* A vibrant violet for high visibility */
   background-color: rgba(184, 129, 225, 0.9); /* A light violet fill */
   z-index: 10;
   color: white; /* Indigo, for readability on violet bg */
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+  text-shadow: -1px -1px 0 #00000045, 1px -1px 0 #00000045, -1px 1px 0 #00000045, 1px 1px 0 #00000045;
   font-weight: 400;
+}
+
+.stall-area:hover {
+  background-color: rgba(255, 69, 0, 0.8);
+  border-color: var(--primary-color);
+  color: white;
+  text-shadow: none;
 }
 
 .stall-area.is-selected {
@@ -75,7 +75,7 @@
   color: #666; /* Neutral dark gray text */
   background-color: rgba(255, 193, 7, 0.2); /* Very light gray, almost transparent */
   
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.7); /* Override default from .stall-area */
+  text-shadow: -1px -1px 0 #ffffff8a, 1px -1px 0 #ffffff8a, -1px 1px 0 #ffffff8a, 1px 1px 0 #ffffff8a; /* Override default from .stall-area */
 }
 
 /* Custom hover state for grouped areas, different from regular stalls. */
