@@ -1,0 +1,26 @@
+/* --- Tooltip Styles --- */
+#tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 2500;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+  line-height: 1.4;
+  text-align: left;
+}
+
+#tooltip.hidden {
+  opacity: 0;
+}
+
+#tooltip:not(.hidden) {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,0 +1,41 @@
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .modal-content, .modal-mini-map {
+    max-width: 95%;
+  }
+
+  /* --- Mobile Map View: Grouped Rows --- */
+  /* On mobile, hide the individual stall areas on the main map. */
+  /* The > selector ensures this only applies to the main map, not magnifiers. */
+  #map-container > .stall-area:not(.stall-group-area) {
+    display: none;
+  }
+  
+  /* On mobile, show all group areas, including the ones hidden on desktop. */
+  #map-container > .stall-group-area.mobile-only-group {
+    display: flex; /* Use flex to be consistent with other stall areas */
+  }
+
+  /* --- Mobile Magnified Text Scaling --- */
+  /* Main Magnifier (zoom: 3.5x) */
+  #magnifier-stall-layer .stall-area { font-size: 0.2rem; }
+  #magnifier-stall-layer .stall-group-area { font-size: 0.28rem; }
+
+  /* Modal Mini-map (zoom: 4.5x) */
+  #modal-magnifier-stall-layer .stall-area { font-size: 0.2rem; }
+  #modal-magnifier-stall-layer .stall-group-area { font-size: 0.22rem; }
+}
+
+@media (max-width: 600px) {
+  #app {
+    padding: 10px;
+  }
+  
+  .modal-header, #modal-body, #modal-footer {
+    padding: 15px;
+  }
+  
+  .footer-link {
+    padding: 4px 8px;
+  }
+}

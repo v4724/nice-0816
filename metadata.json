@@ -1,0 +1,6 @@
+{
+  "name": "NiCE 互動地圖",
+  "description": "An interactive map for the NiCE event's. Hover over stalls to see their names and click for details including promo images and links.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

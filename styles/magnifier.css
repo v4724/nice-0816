@@ -1,0 +1,74 @@
+/* --- Magnifier Styles --- */
+#map-container.magnifying {
+  cursor: none;
+}
+
+#map-container.magnifying .stall-area {
+  cursor: none;
+}
+
+#magnifier-wrapper {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  pointer-events: auto;
+  cursor: move;
+  display: none;
+  z-index: 50;
+}
+
+#magnifier {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 4px solid var(--primary-color);
+  border-radius: 50%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  background-repeat: no-repeat;
+  overflow: hidden;
+  pointer-events: none; /* Let clicks pass through to the wrapper */
+}
+
+#magnifier-stall-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  pointer-events: auto; /* Allow stalls to be clicked */
+}
+
+#magnifier-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  z-index: 55;
+  pointer-events: none; /* Allows clicks to pass through for dragging */
+  border: 2px solid rgba(255, 69, 0, 0.2);
+  border-radius: 50%;
+  background-color: rgba(255, 69, 0, 0.15);
+  box-shadow: 0 0 5px rgba(0,0,0,0.4);
+}
+
+#magnifier-marker::before,
+#magnifier-marker::after {
+  content: none;
+}
+
+/* --- Magnified View Text Scaling (Desktop) --- */
+#magnifier-stall-layer .stall-area {
+  white-space: nowrap;
+  text-overflow: clip;
+  font-size: 0.5rem; /* Base: 0.5rem */
+}
+#magnifier-stall-layer .stall-group-area {
+  font-size: 0.4rem; /* Base: 1rem */
+}
+#magnifier-stall-layer .stall-area.is-selected {
+    /* font-weight: 900; */
+}
