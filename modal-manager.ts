@@ -191,9 +191,27 @@ export function openModal(stallId: string, context: ModalContext) {
     elements.modalNavDown.ariaLabel = '往下一個攤位';
 
     // Try to find adjacent stall within the same vertical column first.
-    // Up (▲) action is num + 1, Down (▼) action is num - 1.
-    let upStallId = navigableStalls.find(s => s.id.startsWith(rowId) && s.num === stall.num + 1)?.id;
-    let downStallId = navigableStalls.find(s => s.id.startsWith(rowId) && s.num === stall.num - 1)?.id;
+	  // Up (▲) action is num + 1, Down (▼) action is num - 1.
+	  let upStallId = undefined;
+	  let upStep = 1;
+	  while (stall.num + upStep <= 34) {
+		  const findId = navigableStalls.find(s => s.id.startsWith(rowId) && s.num === stall.num + upStep)?.id
+		  if (findId) {
+			  upStallId = findId;
+			  break;
+		  }
+		  upStep += 1;
+	  }
+	  let downStallId = undefined;
+	  let downStep = -1;
+	  while (stall.num + downStep > 0) {
+		  const findId = navigableStalls.find(s => s.id.startsWith(rowId) && s.num === stall.num + downStep)?.id
+		  if (findId) {
+			  downStallId = findId;
+			  break;
+		  }
+		  downStep -= 1;
+	  }
 
     // If at the top of the vertical column, find the row "above" (visually).
     if (!upStallId) {
