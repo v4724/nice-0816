@@ -17,6 +17,7 @@
 }
 
 /* --- Stall Area Styles --- */
+/* Base class for all interactive areas */
 .stall-area {
   position: absolute;
   background-color: rgba(255, 226, 101, 0.95); /* Default Yellowish tint */
@@ -33,6 +34,11 @@
   color: rgba(0, 0, 0, 0.6);
   user-select: none;
   text-shadow: 0 0 2px white;
+}
+
+/* Default state for mobile-only group areas (hidden on desktop). */
+.mobile-only-group {
+  display: none;
 }
 
 /* Individual stalls inside a permanently grouped row are not rendered on the main map */

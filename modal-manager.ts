@@ -7,6 +7,7 @@ import type { StallData } from './types.ts';
 import type { DOMElements } from './dom-elements.ts';
 import type { MagnifierController } from './magnifier.ts';
 import { allRowIds, getAdjacentStallId, getNavigableStalls } from './navigation.ts';
+import { locateStalls } from './official-data.ts';
 import { clearSelection, updateStallClass, UIState } from './ui-manager.ts';
 
 /** A context object to pass dependencies into modal functions. */
@@ -21,17 +22,178 @@ interface ModalContext {
 // Module-level state for the modal
 const modalState = {
   wasMagnifierVisible: false,
+  // Panning state for all devices
+  isPanning: false,
+  panStartX: 0,
+  panStartY: 0,
+  initialBgX: 0,
+  initialBgY: 0,
+  panHappened: false,
+  clickTarget: null as EventTarget | null,
+  // State for smooth panning with requestAnimationFrame
+  animationFrameId: 0,
+  targetBgX: 0,
+  targetBgY: 0,
 };
 
 /**
- * Updates the integrated mini-map view inside the modal.
- * @param stall The stall to display and highlight.
- * @param elements A reference to all DOM elements.
- * @param isMobile Whether the app is running on a mobile device.
+ * Updates the modal's row indicator. It prioritizes using the explicit `stall`
+ * for accuracy when selecting, and falls back to a geometric calculation based
+ * on the view's center when panning.
+ * @param context The application context.
+ * @param currentBgX The current horizontal background position of the map.
+ * @param currentBgY The current vertical background position of the map.
+ * @param stall The currently selected stall, if any.
  */
-function updateModalMagnifierView(stall: StallData, elements: DOMElements, isMobile: boolean) {
-  const { modalMagnifierWrapper, modalMagnifier, modalMagnifierStallLayer, mapImage, modalMagnifierRowIndicatorContainer } = elements;
-  const { modalMagnifierRowIndicatorPrev, modalMagnifierRowIndicatorCurrent, modalMagnifierRowIndicatorNext } = elements;
+function updateModalRowIndicator(context: ModalContext, currentBgX: number, currentBgY: number, stall?: StallData) {
+    const { elements, isMobile } = context;
+    const { modalMagnifier, mapImage, modalMagnifierRowIndicatorContainer } = elements;
+    const { modalMagnifierRowIndicatorPrev, modalMagnifierRowIndicatorCurrent, modalMagnifierRowIndicatorNext } = elements;
+
+    modalMagnifierRowIndicatorContainer.style.display = 'flex';
+
+    let closestRowData: (typeof locateStalls[0]) | null = null;
+
+    if (stall) {
+      // Priority 1: Use the provided stall's data for 100% accuracy.
+      const rowId = stall.id.substring(0, 1);
+      closestRowData = locateStalls.find(r => r.id === rowId) ?? null;
+    } else {
+      // Priority 2 (Fallback for panning): Use geometric calculation based on view center.
+      const zoomFactor = isMobile ? 4.5 : 1.8;
+      const viewW = modalMagnifier.offsetWidth;
+      const viewH = modalMagnifier.offsetHeight;
+      const mapW = mapImage.offsetWidth;
+      const mapH = mapImage.offsetHeight;
+      
+      if (mapW === 0 || mapH === 0) return;
+      
+      // Calculate what point on the original map is now at the center of the view.
+      const mapPointAtViewCenterX = (viewW / 2 - currentBgX) / zoomFactor;
+      const mapPointAtViewCenterY = (viewH / 2 - currentBgY) / zoomFactor;
+
+      const lensCenterX_pct = (mapPointAtViewCenterX / mapW) * 100;
+      const lensCenterY_pct = (mapPointAtViewCenterY / mapH) * 100;
+      
+      let minDistanceSq = Infinity;
+
+      for (const row of locateStalls) {
+          const dx = Math.max(row.border.left - lensCenterX_pct, 0, lensCenterX_pct - row.border.right);
+          const dy = Math.max(row.border.top - lensCenterY_pct, 0, lensCenterY_pct - row.border.bottom);
+          const distanceSq = dx * dx + dy * dy;
+
+          if (distanceSq < minDistanceSq) {
+              minDistanceSq = distanceSq;
+              closestRowData = row;
+          }
+      }
+    }
+    
+    if (closestRowData) {
+        const currentIndex = allRowIds.indexOf(closestRowData.id);
+        modalMagnifierRowIndicatorCurrent.textContent = closestRowData.id;
+        modalMagnifierRowIndicatorPrev.textContent = currentIndex > 0 ? allRowIds[currentIndex - 1] : '';
+        modalMagnifierRowIndicatorNext.textContent = currentIndex < allRowIds.length - 1 ? allRowIds[currentIndex + 1] : '';
+    } else {
+        modalMagnifierRowIndicatorCurrent.textContent = '';
+        modalMagnifierRowIndicatorPrev.textContent = '';
+        modalMagnifierRowIndicatorNext.textContent = '';
+    }
+}
+
+/**
+ * Sets the position of the mini-map view, clamps it within bounds, culls off-screen elements,
+ * and updates the row indicator. It now returns the final clamped background positions.
+ * @param context The application context.
+ * @param bgX The target horizontal background position.
+ * @param bgY The target vertical background position.
+ * @param stall The stall being centered on, if any, to ensure accurate row indicator display.
+ * @returns An object with the final, clamped background coordinates.
+ */
+function setModalMapPosition(context: ModalContext, bgX: number, bgY: number, stall?: StallData): { clampedBgX: number, clampedBgY: number } {
+    const { elements, isMobile, allStalls, uiState } = context;
+    const { modalMagnifier, modalMagnifierStallLayer, mapImage } = elements;
+
+    const zoomFactor = isMobile ? 4.5 : 1.8;
+    const viewW = modalMagnifier.offsetWidth;
+    const viewH = modalMagnifier.offsetHeight;
+
+    if (viewW === 0 || viewH === 0) return { clampedBgX: 0, clampedBgY: 0 };
+
+    const mapW = mapImage.offsetWidth;
+    const mapH = mapImage.offsetHeight;
+    if (mapW === 0 || mapH === 0) return { clampedBgX: 0, clampedBgY: 0 };
+
+    const scaledMapW = mapW * zoomFactor;
+    const scaledMapH = mapH * zoomFactor;
+    
+    const clampedBgX = Math.max(viewW - scaledMapW, Math.min(bgX, 0));
+    const clampedBgY = Math.max(viewH - scaledMapH, Math.min(bgY, 0));
+
+    // PERFORMANCE: Use `transform` for movement instead of `left`/`top`.
+    modalMagnifier.style.backgroundPosition = `${clampedBgX}px ${clampedBgY}px`;
+    modalMagnifierStallLayer.style.transform = `translate(${clampedBgX}px, ${clampedBgY}px) scale(${zoomFactor})`;
+
+    // --- Viewport Culling for Performance ---
+    const bufferX = (viewW / zoomFactor) * 0.5;
+    const bufferY = (viewH / zoomFactor) * 0.5;
+    const visibleLeft = (-clampedBgX / zoomFactor) - bufferX;
+    const visibleTop = (-clampedBgY / zoomFactor) - bufferY;
+    const visibleRight = ((-clampedBgX + viewW) / zoomFactor) + bufferX;
+    const visibleBottom = ((-clampedBgY + viewH) / zoomFactor) + bufferY;
+
+    allStalls.forEach(s => {
+        const clone = uiState.stallIdToModalCloneMap.get(s.id);
+        if (!clone || !s.numericCoords) return;
+
+        const { left, top, width, height } = s.numericCoords;
+        const stallLeft_px = (left / 100) * mapW;
+        const stallTop_px = (top / 100) * mapH;
+        const stallRight_px = stallLeft_px + ((width / 100) * mapW);
+        const stallBottom_px = stallTop_px + ((height / 100) * mapH);
+
+        const isVisible =
+            stallLeft_px < visibleRight &&
+            stallRight_px > visibleLeft &&
+            stallTop_px < visibleBottom &&
+            stallBottom_px > visibleTop;
+        
+        clone.classList.toggle('modal-map-hidden', !isVisible);
+    });
+
+    locateStalls.forEach(row => {
+        const clone = uiState.rowIdToModalGroupCloneMap.get(row.id);
+        if (!clone) return;
+
+        const rowLeft_px = (row.border.left / 100) * mapW;
+        const rowTop_px = (row.border.top / 100) * mapH;
+        const rowRight_px = (row.border.right / 100) * mapW;
+        const rowBottom_px = (row.border.bottom / 100) * mapH;
+
+        const isVisible =
+            rowLeft_px < visibleRight &&
+            rowRight_px > visibleLeft &&
+            rowTop_px < visibleBottom &&
+            rowBottom_px > visibleTop;
+        
+        clone.classList.toggle('modal-map-hidden', !isVisible);
+    });
+    
+    updateModalRowIndicator(context, clampedBgX, clampedBgY, stall);
+
+    return { clampedBgX, clampedBgY };
+}
+
+
+/**
+ * Updates the integrated mini-map view inside the modal to center on a stall.
+ * This function now provides a smooth transition when switching between stalls.
+ * @param stall The stall to display and highlight.
+ * @param context The application context.
+ */
+function updateModalMagnifierView(stall: StallData, context: ModalContext) {
+  const { elements, isMobile } = context;
+  const { modalMagnifierWrapper, modalMagnifier, modalMagnifierStallLayer, mapImage } = elements;
   
   if (!stall || !stall.coords) {
     modalMagnifierWrapper.style.display = 'none';
@@ -39,24 +201,11 @@ function updateModalMagnifierView(stall: StallData, elements: DOMElements, isMob
   }
 
   modalMagnifierWrapper.style.display = 'block';
-  
-  // Update the row indicators based on the stall's row ID.
-  const rowId = stall.id.substring(0, 1);
-  if (rowId === '範') {
-    // Hide the row indicator for special, non-grid stalls like '範'.
-    modalMagnifierRowIndicatorContainer.style.display = 'none';
-  } else {
-    // Show and update the indicator for all other stalls.
-    modalMagnifierRowIndicatorContainer.style.display = 'flex';
-    const currentIndex = allRowIds.indexOf(rowId);
-    modalMagnifierRowIndicatorCurrent.textContent = rowId;
-    modalMagnifierRowIndicatorPrev.textContent = currentIndex > 0 ? allRowIds[currentIndex - 1] : '';
-    modalMagnifierRowIndicatorNext.textContent = currentIndex < allRowIds.length - 1 ? allRowIds[currentIndex + 1] : '';
-  }
+  modalMagnifierWrapper.style.cursor = 'grab';
 
   const zoomFactor = isMobile ? 4.5 : 1.8;
-  const viewW = modalMagnifierWrapper.offsetWidth;
-  const viewH = modalMagnifierWrapper.offsetHeight;
+  const viewW = modalMagnifier.offsetWidth;
+  const viewH = modalMagnifier.offsetHeight;
 
   if (viewW === 0 || viewH === 0) {
     modalMagnifierWrapper.style.display = 'none';
@@ -70,44 +219,38 @@ function updateModalMagnifierView(stall: StallData, elements: DOMElements, isMob
 
   modalMagnifierStallLayer.style.width = `${mapW}px`;
   modalMagnifierStallLayer.style.height = `${mapH}px`;
-  modalMagnifierStallLayer.style.transform = `scale(${zoomFactor})`;
+  modalMagnifier.style.backgroundSize = `${scaledMapW}px ${scaledMapH}px`;
+  modalMagnifier.style.backgroundImage = `url('${mapImage.src}')`;
 
-  const { left, top, width, height } = stall.coords;
-  const [stallLeftPercent, stallTopPercent, stallWidthPercent, stallHeightPercent] = 
-    [left, top, width, height].map(parseFloat);
-
-  if ([stallLeftPercent, stallTopPercent, stallWidthPercent, stallHeightPercent].some(isNaN)) {
+  const { left, top, width, height } = stall.numericCoords;
+  if ([left, top, width, height].some(v => typeof v !== 'number')) {
     console.error("Could not parse stall coordinates for modal magnifier:", stall.coords);
     modalMagnifierWrapper.style.display = 'none';
     return;
   }
-
-  const stallCenterX_px = (stallLeftPercent + stallWidthPercent / 2) / 100 * mapW;
-  const stallCenterY_px = (stallTopPercent + stallHeightPercent / 2) / 100 * mapH;
-
+  
+  // Calculate the ideal background position to center the stall.
+  const stallCenterX_px = (left + width / 2) / 100 * mapW;
+  const stallCenterY_px = (top + height / 2) / 100 * mapH;
   const bgX = (viewW / 2) - (stallCenterX_px * zoomFactor);
   const bgY = (viewH / 2) - (stallCenterY_px * zoomFactor);
 
-  modalMagnifier.style.backgroundSize = `${scaledMapW}px ${scaledMapH}px`;
-  modalMagnifier.style.backgroundImage = `url('${mapImage.src}')`;
-  modalMagnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
-  modalMagnifierStallLayer.style.left = `${bgX}px`;
-  modalMagnifierStallLayer.style.top = `${bgY}px`;
+  setModalMapPosition(context, bgX, bgY, stall);
   
-  // Ensure all stalls are visible on desktop/mobile.
-  modalMagnifierStallLayer.querySelectorAll('.modal-map-hidden').forEach(el => {
-    el.classList.remove('modal-map-hidden');
-  });
-
-  const oldHighlight = modalMagnifierWrapper.querySelector('.modal-stall-highlight');
-  if (oldHighlight) oldHighlight.remove();
-
-  const highlightEl = document.createElement('div');
-  highlightEl.className = 'modal-stall-highlight';
-  highlightEl.style.width = `${(stallWidthPercent / 100) * mapW * zoomFactor}px`;
-  highlightEl.style.height = `${(stallHeightPercent / 100) * mapH * zoomFactor}px`;
-  // Append to wrapper to avoid being clipped by lens's overflow:hidden
-  modalMagnifierWrapper.appendChild(highlightEl);
+  // Update the highlight element's position. It's inside the stall layer now.
+  let highlightEl = modalMagnifierStallLayer.querySelector('.modal-stall-highlight') as HTMLElement | null;
+  if (!highlightEl) {
+    highlightEl = document.createElement('div');
+    highlightEl.className = 'modal-stall-highlight';
+    modalMagnifierStallLayer.appendChild(highlightEl);
+  }
+  
+  // Use the percentage-based coordinates directly from the stall data for smooth CSS transition.
+  highlightEl.style.width = stall.coords.width;
+  highlightEl.style.height = stall.coords.height;
+  highlightEl.style.left = stall.coords.left;
+  highlightEl.style.top = stall.coords.top;
+  highlightEl.style.visibility = 'visible';
 }
 
 /**
@@ -191,8 +334,8 @@ export function openModal(stallId: string, context: ModalContext) {
     elements.modalNavDown.ariaLabel = '往下一個攤位';
 
     // Try to find adjacent stall within the same vertical column first.
-	  // Up (▲) action is num + 1, Down (▼) action is num - 1.
-	  let upStallId = undefined;
+    // Up (▲) action is num + 1, Down (▼) action is num - 1.
+    let upStallId = undefined;
 	  let upStep = 1;
 	  while (stall.num + upStep <= 34) {
 		  const findId = navigableStalls.find(s => s.id.startsWith(rowId) && s.num === stall.num + upStep)?.id
@@ -260,7 +403,6 @@ export function openModal(stallId: string, context: ModalContext) {
   
   // --- Update Vertical Stall List (for vertical rows) ---
   const { modalVerticalStallList } = elements;
-  const testContainer = modalVerticalStallList.parentElement as HTMLElement | null;
 
   if (isVertical) {
     // Only reset scroll if we are opening a *different* vertical row.
@@ -270,7 +412,6 @@ export function openModal(stallId: string, context: ModalContext) {
     
     modalVerticalStallList.innerHTML = '';
     modalVerticalStallList.style.display = 'flex';
-    if (testContainer) testContainer.style.paddingLeft = '';
   
     const stallsInRow = allStalls
       .filter(s => s.id.startsWith(rowId))
@@ -321,9 +462,6 @@ export function openModal(stallId: string, context: ModalContext) {
   } else {
     modalVerticalStallList.innerHTML = '';
     modalVerticalStallList.style.display = 'none';
-    // By restoring the default padding instead of setting it to '0', we prevent the container from collapsing.
-    // The visual effect is correct because the list itself is hidden.
-    if (testContainer) testContainer.style.paddingLeft = '';
   }
 
   // Show Modal
@@ -332,7 +470,7 @@ export function openModal(stallId: string, context: ModalContext) {
   elements.modalNavControls.style.display = 'grid';
   elements.modal.setAttribute('aria-hidden', 'true');
 
-  updateModalMagnifierView(stall, elements, isMobile);
+  updateModalMagnifierView(stall, context);
 }
 
 /**
@@ -358,11 +496,40 @@ export function closeModal(context: ModalContext) {
 }
 
 /**
+ * Handles a click/tap event inside the modal mini-map.
+ * @param target The event target.
+ * @param context The application context.
+ */
+function handleModalMapClick(target: HTMLElement, context: ModalContext) {
+  const { allStalls, uiState } = context;
+  const clickedGroupArea = target.closest('.stall-group-area') as HTMLElement | null;
+  const clickedStallArea = target.closest('.stall-area:not(.stall-group-area)') as HTMLElement | null;
+  const currentStallId = uiState.selectedStallElement?.dataset.stallId;
+
+  if (clickedGroupArea?.dataset.rowId) {
+    const rowId = clickedGroupArea.dataset.rowId;
+    if (rowId === currentStallId?.substring(0, 1)) {
+      return; // Prevent reloading if the clicked row is already active.
+    }
+    const stallsInRow = allStalls.filter(s => s.id.startsWith(rowId)).sort((a, b) => b.num - a.num);
+    if (stallsInRow.length > 0) {
+      openModal(stallsInRow[0].id, context);
+    }
+  } else if (clickedStallArea?.dataset.stallId) {
+    const clickedStallId = clickedStallArea.dataset.stallId;
+    if (clickedStallId === currentStallId) {
+      return; // Do nothing if the same stall is clicked
+    }
+    openModal(clickedStallId, context);
+  }
+}
+
+/**
  * Sets up all event listeners related to the modal.
  * @param context An object containing all necessary dependencies.
  */
 export function initializeModalEventListeners(context: ModalContext) {
-  const { elements, allStalls } = context;
+  const { elements } = context;
 
   elements.modalNavControls.addEventListener('click', (e) => {
     const button = (e.target as HTMLElement).closest('.modal-nav-btn') as HTMLButtonElement;
@@ -378,35 +545,115 @@ export function initializeModalEventListeners(context: ModalContext) {
     }
   });
 
-  elements.modalMagnifierWrapper.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    const clickedGroupArea = target.closest('.stall-group-area') as HTMLElement | null;
-    const clickedStallArea = target.closest('.stall-area:not(.stall-group-area)') as HTMLElement | null;
-    const currentStallId = context.uiState.selectedStallElement?.dataset.stallId;
+  // --- Mini-Map Interaction: Unified Pan and Click for All Devices ---
+  const { modalMagnifierWrapper, modalMagnifier, modalMagnifierStallLayer } = elements;
 
-    if (clickedGroupArea?.dataset.rowId) {
-      const rowId = clickedGroupArea.dataset.rowId;
-      // Prevent reloading if the clicked row is already active.
-      if (rowId === currentStallId?.substring(0, 1)) {
-        return;
-      }
-      
-      // Find the first stall in the row (top-most for vertical rows) and open its modal directly.
-      const stallsInRow = allStalls
-        .filter(s => s.id.startsWith(rowId))
-        .sort((a, b) => b.num - a.num); // Sort by number descending.
+  const panAnimationLoop = () => {
+    if (!modalState.isPanning) return;
+    setModalMapPosition(context, modalState.targetBgX, modalState.targetBgY);
+    modalState.animationFrameId = requestAnimationFrame(panAnimationLoop);
+  };
 
-      if (stallsInRow.length > 0) {
-        openModal(stallsInRow[0].id, context);
-      }
-    } else if (clickedStallArea?.dataset.stallId) {
-      const clickedStallId = clickedStallArea.dataset.stallId;
-      if (clickedStallId === currentStallId) {
-        return; // Do nothing if the same stall is clicked
-      }
-      openModal(clickedStallId, context);
+  const onPanMove = (e: MouseEvent | TouchEvent) => {
+    if (!modalState.isPanning) return;
+    if (e.type === 'touchmove') e.preventDefault();
+    
+    const touch = (e as TouchEvent).touches?.[0];
+    const clientX = touch ? touch.clientX : (e as MouseEvent).clientX;
+    const clientY = touch ? touch.clientY : (e as MouseEvent).clientY;
+
+    const dx = clientX - modalState.panStartX;
+    const dy = clientY - modalState.panStartY;
+
+    if (!modalState.panHappened && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+        modalState.panHappened = true;
+        modalMagnifierWrapper.style.cursor = 'grabbing';
     }
-  });
+
+    if (modalState.panHappened) {
+      modalState.targetBgX = modalState.initialBgX + dx;
+      modalState.targetBgY = modalState.initialBgY + dy;
+    }
+  };
+
+  const onPanEnd = () => {
+    cancelAnimationFrame(modalState.animationFrameId);
+    document.removeEventListener('mousemove', onPanMove);
+    document.removeEventListener('touchmove', onPanMove);
+    document.removeEventListener('mouseup', onPanEnd);
+    document.removeEventListener('touchend', onPanEnd);
+
+    if (!modalState.panHappened && modalState.clickTarget) {
+      handleModalMapClick(modalState.clickTarget as HTMLElement, context);
+    }
+
+    modalState.isPanning = false;
+    modalState.clickTarget = null;
+    modalMagnifierWrapper.style.cursor = 'grab';
+    
+    // Restore transitions for smooth centering next time a stall is selected
+    modalMagnifier.style.transition = '';
+    modalMagnifierStallLayer.style.transition = '';
+  };
+
+  const onPanStart = (e: MouseEvent | TouchEvent) => {
+    const target = e.target as HTMLElement;
+    // Prevent pan from starting if the click is on the vertical stall list.
+    if (target.closest('#modal-vertical-stall-list')) {
+        return;
+    }
+
+    // NEW Check: Prevent pan if clicking the currently active group area.
+    const clickedGroupArea = target.closest('.stall-group-area') as HTMLElement | null;
+    const currentStallId = context.uiState.selectedStallElement?.dataset.stallId;
+    if (clickedGroupArea && currentStallId) {
+      const clickedRowId = clickedGroupArea.dataset.rowId;
+      const currentRowId = currentStallId.substring(0, 1);
+      if (clickedRowId === currentRowId) {
+        return; // Don't start a pan/drag if clicking the already-active group area.
+      }
+    }
+    
+    // Prevent starting a pan with the right mouse button
+    if ('button' in e && e.button !== 0) return;
+    
+    modalState.isPanning = true;
+    modalState.panHappened = false;
+    modalState.clickTarget = e.target;
+    
+    const touch = (e as TouchEvent).touches?.[0];
+    const clientX = touch ? touch.clientX : (e as MouseEvent).clientX;
+    const clientY = touch ? touch.clientY : (e as MouseEvent).clientY;
+
+    modalState.panStartX = clientX;
+    modalState.panStartY = clientY;
+
+    // Get initial position from the transform property
+    const transformMatrix = new DOMMatrix(window.getComputedStyle(modalMagnifierStallLayer).transform);
+    modalState.initialBgX = transformMatrix.e;
+    modalState.initialBgY = transformMatrix.f;
+    modalState.targetBgX = modalState.initialBgX;
+    modalState.targetBgY = modalState.initialBgY;
+
+    // Disable transitions during panning for direct control
+    modalMagnifier.style.transition = 'none';
+    modalMagnifierStallLayer.style.transition = 'none';
+
+    const highlight = modalMagnifierStallLayer.querySelector('.modal-stall-highlight');
+    if (highlight) (highlight as HTMLElement).style.visibility = 'hidden';
+
+    cancelAnimationFrame(modalState.animationFrameId);
+    modalState.animationFrameId = requestAnimationFrame(panAnimationLoop);
+
+    document.addEventListener('mousemove', onPanMove);
+    document.addEventListener('touchmove', onPanMove, { passive: false });
+    document.addEventListener('mouseup', onPanEnd, { once: true });
+    document.addEventListener('touchend', onPanEnd, { once: true });
+  };
+
+  modalMagnifierWrapper.addEventListener('mousedown', onPanStart);
+  modalMagnifierWrapper.addEventListener('touchstart', onPanStart, { passive: false });
+  // --- End of Mini-Map Interaction ---
 
   elements.modalClose.addEventListener('click', () => closeModal(context));
   elements.modalOverlay.addEventListener('click', () => closeModal(context));

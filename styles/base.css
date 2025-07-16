@@ -165,22 +165,8 @@ p {
   line-height: 1.5;
 }
 
-/* --- Row Indicators --- */
-#magnifier-row-indicator-container,
-#modal-magnifier-row-indicator-container {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 60;
-  pointer-events: none;
-  user-select: none;
-}
-
+/* --- Common Row Indicator Component Styles --- */
+/* These are shared between the main magnifier and the modal mini-map */
 .row-indicator-current,
 .row-indicator-adjacent {
   background-color: rgba(0, 0, 0, 0.65);
@@ -204,6 +190,7 @@ p {
   padding: 3px 6px;
   color: #ccc;
 }
+
 
 /* --- Animations --- */
 @keyframes pulse-glow {
@@ -244,4 +231,3 @@ p {
     background-position: -200% 0;
   }
 }
-

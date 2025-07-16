@@ -60,6 +60,22 @@
   content: none;
 }
 
+/* --- Main Magnifier Row Indicator --- */
+#magnifier-row-indicator-container {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 60;
+  pointer-events: none;
+  user-select: none;
+}
+
+
 /* --- Magnified View Text Scaling (Desktop) --- */
 #magnifier-stall-layer .stall-area {
   white-space: nowrap;
@@ -68,7 +84,4 @@
 }
 #magnifier-stall-layer .stall-group-area {
   font-size: 0.4rem; /* Base: 1rem */
-}
-#magnifier-stall-layer .stall-area.is-selected {
-    /* font-weight: 900; */
 }

@@ -36,12 +36,19 @@ export interface StallData {
   num: number;
 
   stallCnt: number;
-  /** The calculated pixel coordinates and dimensions for the stall's interactive area on the map. */
+  /** The calculated string-based coordinates and dimensions for the stall's interactive area on the map. */
   coords: {
     top: string;
     left: string;
     width: string;
     height: string;
+  };
+  /** Pre-calculated numeric coordinates for performant calculations in JS. */
+  numericCoords: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
   };
   // Official data from event site
   /** The official title or name of the stall. */

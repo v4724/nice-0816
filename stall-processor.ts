@@ -61,6 +61,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
             // --- Coordinate Calculation ---
             const coordsTemplate = locateStall.coords;
             let myCoords: NonNullable<StallData['coords']>;
+            let myNumericCoords: NonNullable<StallData['numericCoords']>;
 
             // Most stalls are in horizontal rows, calculate position from right to left.
             if (line !== '狗' && line !== '雞' && line !== '猴' && line !== '特' && line !== '商'  ) {
@@ -87,12 +88,23 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                     }
                 }
                 
+                const finalLeft = parseFloat(left.toFixed(2));
+                const finalWidth = coordsTemplate.width * stallCnt;
+
                 myCoords = {
                     top: `${top}%`,
-                    left: `${left.toFixed(2)}%`,
-                    width: `${coordsTemplate.width * stallCnt}%`,
+                    left: `${finalLeft}%`,
+                    width: `${finalWidth}%`,
                     height: `${coordsTemplate.height}%`
                 };
+
+                myNumericCoords = {
+                    top: top,
+                    left: finalLeft,
+                    width: finalWidth,
+                    height: coordsTemplate.height
+                };
+
             } else { // Handle the few vertical columns.
                 let tempNum = num;
                 let gapSize = 0;
@@ -125,11 +137,22 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                 if (stallCnt > 1) {
                     top -= (stallCnt - 1) * coordsTemplate.height;
                 }
+
+                const finalTop = parseFloat(top.toFixed(2));
+                const finalHeight = coordsTemplate.height * stallCnt;
+
                 myCoords = {
-                    top: `${top.toFixed(2)}%`,
+                    top: `${finalTop}%`,
                     left: `${coordsTemplate.left}%`,
                     width: `${coordsTemplate.width}%`,
-                    height: `${coordsTemplate.height * stallCnt}%`
+                    height: `${finalHeight}%`
+                };
+
+                myNumericCoords = {
+                    top: finalTop,
+                    left: coordsTemplate.left,
+                    width: coordsTemplate.width,
+                    height: finalHeight,
                 };
             }
 
@@ -139,6 +162,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                 num: num,
                 stallCnt: stallCnt,
                 coords: myCoords,
+                numericCoords: myNumericCoords,
                 stallTitle: rawStall.stallTitle || 'N/A',
                 stallImg: rawStall.stallImg || undefined,
                 stallLink: rawStall.stallLinks || undefined,

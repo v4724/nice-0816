@@ -218,8 +218,9 @@
 
 .modal-magnifier-content {
   position: relative;
-  padding-left: 2.5rem;
   height: 100%;
+  display: flex;
+  padding-left: 2.5rem;
 }
 
 #modal-vertical-stall-list {
@@ -320,14 +321,13 @@
 #modal #modal-magnifier-wrapper .is-grouped-member { display: none; }
 
 #modal-magnifier {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  position: relative;
+  flex-grow: 1;
   height: 100%;
   background-repeat: no-repeat;
   overflow: hidden;
   pointer-events: none;
+  /* Use a subtle transition for centering, but not for panning */
   transition: background-position 0.4s ease-in-out;
 }
 
@@ -337,22 +337,38 @@
   left: 0;
   transform-origin: top left;
   pointer-events: auto;
-  transition: left 0.4s ease-in-out, top 0.4s ease-in-out;
+  /* Use a subtle transition for centering, but not for panning */
+  transition: transform 0.4s ease-in-out;
 }
 
-#modal-magnifier-stall-layer .modal-map-hidden { display: none !important; }
+/* PERFORMANCE: Change culling method from display:none to visibility:hidden */
+#modal-magnifier-stall-layer .modal-map-hidden {
+  visibility: hidden;
+}
 
 .modal-stall-highlight {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 10;
   animation: pulse-glow 2.5s infinite ease-in-out;
   background-color: transparent;
   border: 2px solid var(--primary-color);
   pointer-events: none;
-  transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
+  /* Add transitions for top/left for smooth movement when the view is clamped at edges */
+  transition: width 0.4s ease-in-out, height 0.4s ease-in-out, top 0.4s ease-in-out, left 0.4s ease-in-out;
+}
+
+#modal-magnifier-row-indicator-container {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 60;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* --- Modal Mini-map Text Scaling (Desktop) --- */
