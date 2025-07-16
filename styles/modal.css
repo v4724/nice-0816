@@ -47,7 +47,7 @@
   z-index: 2001;
   transform: translateY(0);
   transition: transform 0.3s ease;
-  max-height: calc(95vh - 150px);
+  max-height: calc(95vh - 220px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -232,7 +232,7 @@
   flex-shrink: 0;
   background-color: #f0f0f0;
   border-right: 1px solid #ddd;
-  max-height: 150px;
+  height: 100%;
   width: 70px;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
@@ -308,7 +308,7 @@
 
 #modal-magnifier-wrapper {
   position: relative;
-  height: 150px;
+  height: 220px;
   flex-shrink: 0;
   flex-grow: 1;
   display: none; /* Controlled by JS */
