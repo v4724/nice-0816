@@ -39,7 +39,7 @@ const modalState = {
 /**
  * Updates the modal's row indicator. It prioritizes using the explicit `stall`
  * for accuracy when selecting, and falls back to a geometric calculation based
- * on the view's center when panning.
+ * on the view's center when panning. It also hides the indicator for the '範' stall.
  * @param context The application context.
  * @param currentBgX The current horizontal background position of the map.
  * @param currentBgY The current vertical background position of the map.
@@ -89,16 +89,23 @@ function updateModalRowIndicator(context: ModalContext, currentBgX: number, curr
       }
     }
     
-    if (closestRowData) {
-        const currentIndex = allRowIds.indexOf(closestRowData.id);
-        modalMagnifierRowIndicatorCurrent.textContent = closestRowData.id;
-        modalMagnifierRowIndicatorPrev.textContent = currentIndex > 0 ? allRowIds[currentIndex - 1] : '';
-        modalMagnifierRowIndicatorNext.textContent = currentIndex < allRowIds.length - 1 ? allRowIds[currentIndex + 1] : '';
-    } else {
-        modalMagnifierRowIndicatorCurrent.textContent = '';
-        modalMagnifierRowIndicatorPrev.textContent = '';
-        modalMagnifierRowIndicatorNext.textContent = '';
-    }
+	if (closestRowData && closestRowData.id === '範') {
+		modalMagnifierRowIndicatorCurrent.textContent = '';
+		modalMagnifierRowIndicatorPrev.textContent = '';
+		modalMagnifierRowIndicatorNext.textContent = '';
+	} else {
+		modalMagnifierRowIndicatorContainer.style.display = 'flex';
+		if (closestRowData) {
+			const currentIndex = allRowIds.indexOf(closestRowData.id);
+			modalMagnifierRowIndicatorCurrent.textContent = closestRowData.id;
+			modalMagnifierRowIndicatorPrev.textContent = currentIndex > 0 ? allRowIds[currentIndex - 1] : '';
+			modalMagnifierRowIndicatorNext.textContent = currentIndex < allRowIds.length - 1 ? allRowIds[currentIndex + 1] : '';
+		} else {
+			modalMagnifierRowIndicatorCurrent.textContent = '';
+			modalMagnifierRowIndicatorPrev.textContent = '';
+			modalMagnifierRowIndicatorNext.textContent = '';
+		}
+	}
 }
 
 /**
