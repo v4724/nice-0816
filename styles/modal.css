@@ -43,7 +43,7 @@
   border-radius: 12px;
   box-shadow: 0 5px 20px var(--modal-shadow);
   max-width: 90%;
-  width: 550px;
+  width: 650px;
   z-index: 2001;
   transform: translateY(0);
   transition: transform 0.3s ease;
@@ -207,7 +207,7 @@
 .modal-mini-map {
   display: flex;
   max-width: 90%;
-  width: 550px;
+  width: 650px;
   z-index: 2001;
   margin-top: 1rem;
   margin-bottom: auto;
