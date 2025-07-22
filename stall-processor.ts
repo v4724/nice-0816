@@ -165,7 +165,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                 numericCoords: myNumericCoords,
                 stallTitle: rawStall.stallTitle || 'N/A',
                 stallImg: rawStall.stallImg || undefined,
-                stallLink: rawStall.stallLinks || undefined,
+                stallLink: rawStall.stallLink || undefined,
                 promoData: [], // Initialize with an empty array for promotions.
             };
             stallsMap.set(id, stallEntry);
