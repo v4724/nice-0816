@@ -26,6 +26,17 @@ function parsePromoLinks(promoUser: string, linksStr: string | undefined): Promo
         .filter((link): link is PromoLink => link !== null && !!link.text && !!link.href); // Filter out invalid entries.
 }
 
+/**
+ * Parses a string of semi-colon delimited tags into an array of string[].
+ * Expected format: "tag Text 1;Link Text 2"
+ * @param tagsStr The string to parse.
+ * @returns An array of string[].
+ */
+function parsePromoTags(tagsStr: string | undefined): string[] {
+    if (!tagsStr) return [];
+    return tagsStr.split(';').map(t => t.trim()).filter(t => t);
+}
+
 
 /**
  * Processes raw data from the sheet into the application's StallData format.
@@ -167,6 +178,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                 stallImg: rawStall.stallImg || undefined,
                 stallLink: rawStall.stallLink || undefined,
                 promoData: [], // Initialize with an empty array for promotions.
+                promoTags: [],
             };
             stallsMap.set(id, stallEntry);
         }
@@ -182,9 +194,19 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
                 promoAvatar: rawStall.promoAvatar || '',
                 promoHTML: rawStall.promoHTML || '',
                 promoLinks: parsePromoLinks(promoUser, rawStall.promoLinks),
+                promoTags: parsePromoTags(rawStall.promoTags),
             };
             stallEntry.promoData.push(promo);
         }
+    });
+
+    // Post-process to collect all unique tags for each stall.
+    stallsMap.forEach(stall => {
+        const uniqueTags = new Set<string>();
+        stall.promoData.forEach(promo => {
+            promo.promoTags.forEach(tag => uniqueTags.add(tag));
+        });
+        stall.promoTags = Array.from(uniqueTags);
     });
 
     // Convert the Map values back to an array to be used by the application.

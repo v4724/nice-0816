@@ -147,6 +147,24 @@
   margin-bottom: 12px;
 }
 
+.promo-tags-container {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.promo-tag {
+  background-color: #e9e9eb;
+  color: #555;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .promo-html-content {
   line-height: 1.6;
   word-break: break-word;

@@ -126,7 +126,6 @@ async function runApp() {
     // --- Event Listener Binding ---
     initializeModalEventListeners(context);
 
-
     elements.searchInput.addEventListener('input', () => {
       const searchTerm = elements.searchInput.value.toLowerCase().trim();
       
@@ -142,10 +141,15 @@ async function runApp() {
           const hasPromoUserMatch = stall.promoData.some(promo =>
             promo.promoUser.toLowerCase().includes(searchTerm)
           );
+          const hasTagMatch = stall.promoTags.some(tag =>
+            tag.toLowerCase().includes(searchTerm)
+          );
+
           isMatch =
             stall.id.toLowerCase().includes(searchTerm) ||
             stall.stallTitle.toLowerCase().includes(searchTerm) ||
-            hasPromoUserMatch;
+            hasPromoUserMatch ||
+            hasTagMatch;
         }
         
         // 1. Update the class on the individual stall element.

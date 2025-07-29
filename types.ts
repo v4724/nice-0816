@@ -23,6 +23,8 @@ export interface PromoStall {
   promoHTML: string;
   /** An array of links associated with this specific promotion. */
   promoLinks: PromoLink[];
+
+  promoTags: string[];
 }
 
 /** 
@@ -59,6 +61,8 @@ export interface StallData {
   stallLink?: string;
   /** An array of all user-submitted promotions associated with this stall. */
   promoData: PromoStall[];
+
+  promoTags: string[];
 }
 
 /** 

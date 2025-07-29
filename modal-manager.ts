@@ -324,6 +324,16 @@ export function openModal(stallId: string, context: ModalContext) {
   stall.promoData.forEach((promo, index) => {
     if (index > 0) bodyHTML += `<div class="promo-entry-separator"></div>`;
     const avatar = promo.promoAvatar ? promo.promoAvatar : 'https://images.plurk.com/3rbw6tg1lA5dEGpdKTL8j1.png';
+    
+    let tagsHTML = '';
+    if (promo.promoTags && promo.promoTags.length > 0) {
+        tagsHTML += '<div class="promo-tags-container">';
+        promo.promoTags.forEach(tag => {
+            tagsHTML += `<span class="promo-tag">#${tag}</span>`;
+        });
+        tagsHTML += '</div>';
+    }
+
     bodyHTML += `
       <div class="promo-entry">
           <div class="modal-user-info">
@@ -331,6 +341,8 @@ export function openModal(stallId: string, context: ModalContext) {
               <span class="modal-username">${promo.promoUser}</span>
           </div>
           <div class="promo-html-content">${promo.promoHTML}</div>
+		  
+          ${tagsHTML}
       </div>`;
   });
   elements.modalBody.innerHTML = bodyHTML || '暫無宣傳資訊。';
@@ -467,10 +479,14 @@ export function openModal(stallId: string, context: ModalContext) {
         const hasPromoUserMatch = s.promoData.some(promo =>
           promo.promoUser.toLowerCase().includes(searchTerm)
         );
+        const hasTagMatch = s.promoTags.some(tag =>
+          tag.toLowerCase().includes(searchTerm)
+        );
         isMatch =
           s.id.toLowerCase().includes(searchTerm) ||
           s.stallTitle.toLowerCase().includes(searchTerm) ||
-          hasPromoUserMatch;
+          hasPromoUserMatch ||
+          hasTagMatch;
       }
       if (isMatch) {
         itemEl.classList.add('is-search-match');
