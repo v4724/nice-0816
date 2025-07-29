@@ -1,111 +1,118 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>08/16 NiCE 創·迴響 互動地圖</title>
-  <link rel="stylesheet" href="index.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>08/16 NiCE 創·迴響 互動地圖</title>
+        <link rel="stylesheet" href="index.css">
 
-<script type="importmap">
+        <script type="importmap">
 {
   "imports": {
     "react/": "https://esm.sh/react@^19.1.0/"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
-</head>
-<body>
-  <div id="app">
-    <h1>NiCE 創·迴響 互動地圖</h1>
-    <div class="legend-container">
-      <div class="legend-item"><span class="legend-box legend-default"></span><span>攤位</span></div>
-      <div class="legend-item"><span class="legend-box legend-promo"></span><span>宣傳車</span></div>
-      <div class="legend-item"><span class="legend-box legend-search"></span><span>搜尋結果</span></div>
-      <div class="legend-item"><span class="legend-box legend-selected"></span><span>選擇中</span></div>
-    </div>
-    <p id="instructions-text">請與地圖互動以查看攤位資訊。</p>
-    <div class="search-container">
-      <input type="search" id="search-input" placeholder="搜尋攤位編號、名稱或作者..." aria-label="Search for stalls">
-      <button id="toggle-magnifier-btn">顯示放大鏡</button>
-    </div>
+        <link rel="stylesheet" href="/index.css">
+    </head>
+    <body>
+        <div id="app">
+            <h1>NiCE 創·迴響 互動地圖</h1>
+            <div class="legend-container">
+                <div class="legend-item"><span class="legend-box legend-default"></span><span>攤位</span></div>
+                <div class="legend-item"><span class="legend-box legend-promo"></span><span>宣傳車</span></div>
+                <div class="legend-item"><span class="legend-box legend-search"></span><span>搜尋結果</span></div>
+                <div class="legend-item"><span class="legend-box legend-selected"></span><span>選擇中</span></div>
+            </div>
+            <p id="instructions-text">請與地圖互動以查看攤位資訊。</p>
+            <div class="search-container">
+                <input type="search" id="search-input" placeholder="搜尋攤位編號、名稱或作者..." aria-label="Search for stalls">
+                <button id="toggle-magnifier-btn">顯示放大鏡</button>
+            </div>
 
-    <!-- Map container: will hold the map image and dynamically injected stall areas -->
-    <div id="map-container">
-      <img id="map-image" src="/assets/stalls-map.jpg" alt="Neo iComic Echo Venue Map">
-      <!-- Stall areas will be injected here by JS -->
+            <!-- Map container: will hold the map image and dynamically injected stall areas -->
+            <div id="map-container">
+                <img id="map-image" src="/assets/stalls-map.jpg" alt="Neo iComic Echo Venue Map">
+                <!-- Stall areas will be injected here by JS -->
 
-      <!-- Magnifier elements: wrapper handles positioning, lens handles visuals -->
-      <div id="magnifier-wrapper">
-        <div id="magnifier">
-          <div id="magnifier-stall-layer"></div>
-        </div>
-        <div id="magnifier-row-indicator-container">
-          <div id="magnifier-row-indicator-next" class="row-indicator-adjacent"></div>
-          <div id="magnifier-row-indicator-current" class="row-indicator-current"></div>
-          <div id="magnifier-row-indicator-prev" class="row-indicator-adjacent"></div>
-        </div>
-        <div id="magnifier-marker"></div>
-      </div>
-    </div>
+                <!-- Magnifier elements: wrapper handles positioning, lens handles visuals -->
+                <div id="magnifier-wrapper">
+                    <div id="magnifier">
+                        <div id="magnifier-stall-layer"></div>
+                    </div>
+                    <div id="magnifier-row-indicator-container">
+                        <div id="magnifier-row-indicator-next" class="row-indicator-adjacent"></div>
+                        <div id="magnifier-row-indicator-current" class="row-indicator-current"></div>
+                        <div id="magnifier-row-indicator-prev" class="row-indicator-adjacent"></div>
+                    </div>
+                    <div id="magnifier-marker"></div>
+                </div>
+            </div>
 
-    <div class="recommendation-note">
-      <p>為獲得較佳體驗，建議使用電腦瀏覽器並將視窗寬度調整至 1024px 以上。</p>
-    </div>
-  
-    <div class="data-source">
-      <h3>非官方製作 / 資料來源</h3>
-      <ul>
+            <div class="recommendation-note">
+                <p>為獲得較佳體驗，建議使用電腦瀏覽器並將視窗寬度調整至 1024px 以上。</p>
+            </div>
+
+            <div class="data-source">
+                <h3>非官方製作 / 資料來源</h3>
+                <ul>
         <li><a href="https://starstonetw.weebly.com/" target="_blank" rel="noopener noreferrer">星石文創 NiCE 官網</a></li>
-      </ul>
-    </div>
-  </div>
+                </ul>
+            </div>
+        </div>
 
-  <!-- Tooltip element: used for hover information. It is hidden by default. -->
-  <div id="tooltip" class="hidden" role="tooltip"></div>
+        <!-- Tooltip element: used for hover information. It is hidden by default. -->
+        <div id="tooltip" class="hidden" role="tooltip"></div>
 
-  <!-- Modal dialog: for displaying detailed stall information. Hidden by default. -->
-  <!-- ARIA attributes ensure it's accessible to screen readers. -->
-  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true" class="hidden">
-    <div class="modal-overlay" id="modal-overlay"></div>
-    
-    <div class="modal-mini-map">
-      <div id="modal-magnifier-wrapper">
-        <div class="modal-magnifier-content">
-          <div id="modal-vertical-stall-list"></div>
-          <div id="modal-magnifier">
-            <div id="modal-magnifier-stall-layer"></div>
-          </div>
-        </div>
-        <div id="modal-magnifier-row-indicator-container">
-          <div id="modal-magnifier-row-indicator-next" class="row-indicator-adjacent"></div>
-          <div id="modal-magnifier-row-indicator-current" class="row-indicator-current"></div>
-          <div id="modal-magnifier-row-indicator-prev" class="row-indicator-adjacent"></div>
-        </div>
-        <!-- The highlight element will be injected here by JS into the wrapper -->
-      </div>
-      <div id="modal-nav-controls">
-        <button id="modal-nav-up" class="modal-nav-btn" aria-label="往上一排" disabled>▲</button>
-        <button id="modal-nav-left" class="modal-nav-btn" aria-label="往左一攤" disabled>◄</button>
-        <button id="modal-nav-down" class="modal-nav-btn" aria-label="往下一排" disabled>▼</button>
-        <button id="modal-nav-right" class="modal-nav-btn" aria-label="往右一攤" disabled>►</button>
-      </div>
-    </div>
-    <div class="modal-wrapper">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="modal-title"></h2>
-          <button id="modal-close" aria-label="Close dialog">&times;</button>
-        </div>
-        <div id="modal-body"></div>
-        <div id="modal-footer">
-        </div>
-      </div>
-    </div>
-  </div>
+        <!-- Modal dialog: for displaying detailed stall information. Hidden by default. -->
+        <!-- ARIA attributes ensure it's accessible to screen readers. -->
+        <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true" class="hidden">
+            <div class="modal-overlay" id="modal-overlay"></div>
 
-  <!-- Main application script -->
-  <script type="module" src="index.tsx"></script>
-<script type="module" src="/index.tsx"></script>
-</body>
+            <div class="modal-mini-map">
+                <div id="modal-magnifier-wrapper">
+                    <div class="modal-magnifier-content">
+                        <div id="modal-vertical-stall-list"></div>
+                        <div id="modal-magnifier">
+                            <div id="modal-magnifier-stall-layer"></div>
+                        </div>
+                    </div>
+                    <div id="modal-magnifier-row-indicator-container">
+                        <div id="modal-magnifier-row-indicator-next" class="row-indicator-adjacent"></div>
+                        <div id="modal-magnifier-row-indicator-current" class="row-indicator-current"></div>
+                        <div id="modal-magnifier-row-indicator-prev" class="row-indicator-adjacent"></div>
+                    </div>
+                    <!-- The highlight element will be injected here by JS into the wrapper -->
+                </div>
+                <div id="modal-nav-controls">
+                    <button id="modal-nav-up" class="modal-nav-btn" aria-label="往上一排" disabled>▲</button>
+                    <button id="modal-nav-left" class="modal-nav-btn" aria-label="往左一攤" disabled>◄</button>
+                    <button id="modal-nav-down" class="modal-nav-btn" aria-label="往下一排" disabled>▼</button>
+                    <button id="modal-nav-right" class="modal-nav-btn" aria-label="往右一攤" disabled>►</button>
+                </div>
+            </div>
+            <div class="modal-wrapper">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modal-title"></h2>
+                        <button id="modal-close" aria-label="Close dialog">&times;</button>
+                    </div>
+                    <div id="modal-body"></div>
+                    <div id="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Lightbox for viewing images in detail -->
+        <div id="image-lightbox" class="lightbox-container hidden" role="dialog" aria-modal="true"
+            aria-label="Enlarged image view">
+            <div class="lightbox-overlay"></div>
+            <button id="image-lightbox-close" class="lightbox-close" aria-label="Close image">&times;</button>
+            <img id="image-lightbox-image" src="" alt="Enlarged view" class="lightbox-image">
+        </div>
+
+        <!-- Main application script -->
+        <script type="module" src="/index.tsx"></script>
+    </body>
 </html>

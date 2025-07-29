@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -35,6 +36,31 @@ const modalState = {
   targetBgX: 0,
   targetBgY: 0,
 };
+
+/**
+ * Opens a lightbox to display an enlarged version of an image.
+ * @param src The source URL of the image to display.
+ * @param alt The alternative text for the image.
+ * @param elements A reference to all DOM elements.
+ */
+function openImageLightbox(src: string, alt: string, elements: DOMElements) {
+    if (src) {
+        elements.imageLightboxImage.src = src;
+        elements.imageLightboxImage.alt = alt;
+        elements.imageLightbox.classList.remove('hidden');
+        // The main modal is already open, so `body-modal-open` class is already on the body.
+    }
+}
+
+/**
+ * Closes the image lightbox.
+ * @param elements A reference to all DOM elements.
+ */
+function closeImageLightbox(elements: DOMElements) {
+    elements.imageLightbox.classList.add('hidden');
+    elements.imageLightboxImage.src = ''; // Clear src to stop loading and free memory.
+}
+
 
 /**
  * Updates the modal's row indicator. It prioritizes using the explicit `stall`
@@ -662,10 +688,50 @@ export function initializeModalEventListeners(context: ModalContext) {
   modalMagnifierWrapper.addEventListener('touchstart', onPanStart, { passive: false });
   // --- End of Mini-Map Interaction ---
 
+  // --- Image Lightbox Listeners ---
+  const boundCloseImageLightbox = () => closeImageLightbox(elements);
+
+  elements.modalBody.addEventListener('click', e => {
+    const target = e.target;
+    // Check if the clicked element is an image within the designated areas.
+    if (target instanceof HTMLImageElement) {
+      let src = '';
+      if (target.classList.contains('official-stall-image')) {
+        src = target.src;
+      } else if (target.closest('.promo-html-content')) {
+        if (target.parentElement instanceof HTMLAnchorElement) {
+          src = target.alt;
+
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      }
+
+      openImageLightbox(src, target.alt, elements);
+    } 
+  });
+
+  elements.imageLightboxClose.addEventListener('click', boundCloseImageLightbox);
+  // Also close by clicking the overlay background
+  elements.imageLightbox.addEventListener('click', e => {
+      if (e.target === elements.imageLightbox || e.target === elements.imageLightbox.querySelector('.lightbox-overlay')) {
+          boundCloseImageLightbox();
+      }
+  });
+
+  // --- Global Listeners ---
   elements.modalClose.addEventListener('click', () => closeModal(context));
   elements.modalOverlay.addEventListener('click', () => closeModal(context));
 
   document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Highest priority: Image lightbox
+    if (!elements.imageLightbox.classList.contains('hidden')) {
+      if (e.key === 'Escape') {
+        boundCloseImageLightbox();
+      }
+      return; // Stop further key processing
+    }
+
     if (elements.modal.classList.contains('hidden')) return;
     switch (e.key) {
       case 'Escape': closeModal(context); break;

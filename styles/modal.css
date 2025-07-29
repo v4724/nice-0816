@@ -118,10 +118,17 @@
 .official-stall-image {
   max-width: 100%;
   height: auto;
+  max-height: calc(100vh - 220px - 16px - 82px - 70px - 40px - 32px);
   display: block;
   border-radius: 8px;
   border: 1px solid #eee;
   margin: 0 auto 15px auto;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.official-stall-image:hover {
+  opacity: 0.85;
 }
 
 .promo-section-separator {
@@ -152,6 +159,12 @@
   margin-top: 10px;
   margin-bottom: 10px;
   border: 1px solid #eee;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.promo-html-content img:hover {
+  opacity: 0.85;
 }
 
 #modal-body a {
@@ -382,4 +395,60 @@
 }
 #modal-magnifier-stall-layer .stall-area.is-selected {
     /* font-weight: 900; */
+}
+
+/* --- Image Lightbox --- */
+.lightbox-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 3000; /* Higher than modal (2000) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lightbox-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 15px;
+  right: 30px;
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  padding: 0;
+  z-index: 3001;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.lightbox-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  position: relative; /* To be above the overlay */
+  z-index: 3001;
 }

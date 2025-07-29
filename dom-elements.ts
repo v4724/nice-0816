@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -16,7 +17,7 @@ export const criticalElementIds = [
   'modal-nav-down', 'modal-nav-left', 'modal-nav-right',
   'magnifier-row-indicator-container', 'magnifier-row-indicator-prev', 'magnifier-row-indicator-current', 'magnifier-row-indicator-next',
   'modal-magnifier-row-indicator-container', 'modal-magnifier-row-indicator-prev', 'modal-magnifier-row-indicator-current', 'modal-magnifier-row-indicator-next',
-  'modal-vertical-stall-list',
+  'modal-vertical-stall-list', 'image-lightbox', 'image-lightbox-close', 'image-lightbox-image',
 ];
 
 /**
@@ -59,6 +60,9 @@ export function getDOMElements() {
     modalNavLeft: document.getElementById('modal-nav-left') as HTMLButtonElement,
     modalNavRight: document.getElementById('modal-nav-right') as HTMLButtonElement,
     modalVerticalStallList: document.getElementById('modal-vertical-stall-list') as HTMLElement,
+    imageLightbox: document.getElementById('image-lightbox') as HTMLElement,
+    imageLightboxClose: document.getElementById('image-lightbox-close') as HTMLElement,
+    imageLightboxImage: document.getElementById('image-lightbox-image') as HTMLImageElement,
   };
 
   // Validate that all elements were found
