@@ -10,6 +10,7 @@ import type { MagnifierController } from './magnifier.ts';
 import { allRowIds, getAdjacentStallId, getNavigableStalls } from './navigation.ts';
 import { locateStalls } from './official-data.ts';
 import { clearSelection, updateStallClass, UIState } from './ui-manager.ts';
+import { isRegExp } from 'util/types';
 
 /** A context object to pass dependencies into modal functions. */
 interface ModalContext {
@@ -712,15 +713,18 @@ export function initializeModalEventListeners(context: ModalContext) {
     // Check if the clicked element is an image within the designated areas.
     if (target instanceof HTMLImageElement) {
       let src = '';
+		const parentElement = target.parentElement;
       if (target.classList.contains('official-stall-image')) {
         src = target.src;
-      } else if (target.closest('.promo-html-content')) {
-        if (target.parentElement instanceof HTMLAnchorElement) {
+		} else if (target.closest('.promo-html-content') && parentElement instanceof HTMLAnchorElement) {
+		  const regex = RegExp(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)(\?.*)?$/);
+		  const isImageHref = regex.test(parentElement?.href ?? '');
+		if (isImageHref) {
           src = target.alt;
 
           e.stopPropagation();
           e.preventDefault();
-        }
+        } 
       }
 
       openImageLightbox(src, target.alt, elements);
