@@ -163,6 +163,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   white-space: nowrap;
+  text-wrap: auto;
 }
 
 .promo-html-content {

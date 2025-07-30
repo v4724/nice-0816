@@ -10,7 +10,6 @@ import type { MagnifierController } from './magnifier.ts';
 import { allRowIds, getAdjacentStallId, getNavigableStalls } from './navigation.ts';
 import { locateStalls } from './official-data.ts';
 import { clearSelection, updateStallClass, UIState } from './ui-manager.ts';
-import { isRegExp } from 'util/types';
 
 /** A context object to pass dependencies into modal functions. */
 interface ModalContext {
@@ -341,9 +340,8 @@ export function openModal(stallId: string, context: ModalContext) {
               <img src="${avatar}" alt="${promo.promoUser}" class="modal-avatar">
               <span class="modal-username">${promo.promoUser}</span>
           </div>
-          <div class="promo-html-content">${promo.promoHTML}</div>
-		  
           ${tagsHTML}
+          <div class="promo-html-content">${promo.promoHTML}</div>
       </div>`;
   });
   elements.modalBody.innerHTML = bodyHTML || '暫無宣傳資訊。';
