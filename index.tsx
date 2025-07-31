@@ -215,8 +215,8 @@ async function runApp() {
           const stallId = (stallArea as HTMLElement).dataset.stallId;
           const stall = allStalls.find(s => s.id === stallId);
           if (stall) {
-            const firstPromo = stall.promoData?.[0];
-            elements.tooltip.innerHTML = `<strong>${stall.stallTitle}</strong><br><small>${stall.id}${firstPromo?.promoUser ? ` / ${firstPromo.promoUser}` : ''}</small>`;
+            const promoUsers = stall.promoData?.map(o => o.promoUser).filter((value, index, self) => self.indexOf(value) === index).join(',');
+            elements.tooltip.innerHTML = `<strong>${stall.stallTitle}</strong><br><small>${stall.id}${promoUsers ? ` / ${promoUsers}` : ''}</small>`;
             elements.tooltip.classList.remove('hidden');
           }
         }
