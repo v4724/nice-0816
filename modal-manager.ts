@@ -77,7 +77,7 @@ function updateModalRowIndicator(
   context: ModalContext,
   currentBgX: number,
   currentBgY: number,
-  stall?: StallData,
+  stall?: StallData
 ) {
   const { elements, isMobile } = context;
   const { modalMagnifier, mapImage, modalMagnifierRowIndicatorContainer } =
@@ -119,12 +119,12 @@ function updateModalRowIndicator(
       const dx = Math.max(
         row.border.left - lensCenterX_pct,
         0,
-        lensCenterX_pct - row.border.right,
+        lensCenterX_pct - row.border.right
       );
       const dy = Math.max(
         row.border.top - lensCenterY_pct,
         0,
-        lensCenterY_pct - row.border.bottom,
+        lensCenterY_pct - row.border.bottom
       );
       const distanceSq = dx * dx + dy * dy;
 
@@ -169,7 +169,7 @@ function setModalMapPosition(
   context: ModalContext,
   bgX: number,
   bgY: number,
-  stall?: StallData,
+  stall?: StallData
 ): { clampedBgX: number; clampedBgY: number } {
   const { elements, isMobile, allStalls, uiState } = context;
   const { modalMagnifier, modalMagnifierStallLayer, mapImage } = elements;
@@ -290,7 +290,7 @@ function updateModalMagnifierView(stall: StallData, context: ModalContext) {
   if ([left, top, width, height].some((v) => typeof v !== 'number')) {
     console.error(
       'Could not parse stall coordinates for modal magnifier:',
-      stall.coords,
+      stall.coords
     );
     modalMagnifierWrapper.style.display = 'none';
     return;
@@ -306,7 +306,7 @@ function updateModalMagnifierView(stall: StallData, context: ModalContext) {
 
   // Update the highlight element's position. It's inside the stall layer now.
   let highlightEl = modalMagnifierStallLayer.querySelector(
-    '.modal-stall-highlight',
+    '.modal-stall-highlight'
   ) as HTMLElement | null;
   if (!highlightEl) {
     highlightEl = document.createElement('div');
@@ -348,7 +348,7 @@ export function openModal(stallId: string, context: ModalContext) {
   clearSelection(elements, magnifierController, uiState);
 
   const stallElement = document.querySelector(
-    `.stall-area[data-stall-id="${stallId}"]`,
+    `.stall-area[data-stall-id="${stallId}"]`
   ) as HTMLElement;
   if (stallElement) {
     uiState.selectedStallElement = stallElement;
@@ -357,7 +357,7 @@ export function openModal(stallId: string, context: ModalContext) {
       'is-selected',
       true,
       magnifierController,
-      uiState,
+      uiState
     );
   }
 
@@ -417,7 +417,7 @@ export function openModal(stallId: string, context: ModalContext) {
   // --- Update Nav Controls ---
   const navigableStalls = getNavigableStalls(
     allStalls,
-    elements.searchInput.value,
+    elements.searchInput.value
   );
   const rowId = stall.id.substring(0, 1);
   const verticalRowIds = ['猴', '雞', '狗', '特', '商'];
@@ -438,7 +438,7 @@ export function openModal(stallId: string, context: ModalContext) {
     let upStep = 1;
     while (stall.num + upStep <= 34) {
       const findId = navigableStalls.find(
-        (s) => s.id.startsWith(rowId) && s.num === stall.num + upStep,
+        (s) => s.id.startsWith(rowId) && s.num === stall.num + upStep
       )?.id;
       if (findId) {
         upStallId = findId;
@@ -450,7 +450,7 @@ export function openModal(stallId: string, context: ModalContext) {
     let downStep = -1;
     while (stall.num + downStep > 0) {
       const findId = navigableStalls.find(
-        (s) => s.id.startsWith(rowId) && s.num === stall.num + downStep,
+        (s) => s.id.startsWith(rowId) && s.num === stall.num + downStep
       )?.id;
       if (findId) {
         downStallId = findId;
@@ -534,10 +534,10 @@ export function openModal(stallId: string, context: ModalContext) {
       let isMatch = false;
       if (searchTerm !== '') {
         const hasPromoUserMatch = s.promoData.some((promo) =>
-          promo.promoUser.toLowerCase().includes(searchTerm),
+          promo.promoUser.toLowerCase().includes(searchTerm)
         );
         const hasTagMatch = s.promoTags.some((tag) =>
-          tag.toLowerCase().includes(searchTerm),
+          tag.toLowerCase().includes(searchTerm)
         );
         isMatch =
           s.id.toLowerCase().includes(searchTerm) ||
@@ -557,7 +557,7 @@ export function openModal(stallId: string, context: ModalContext) {
     });
 
     const selectedEl = modalVerticalStallList.querySelector(
-      '.is-selected',
+      '.is-selected'
     ) as HTMLElement;
     if (selectedEl) {
       // Defer scrollIntoView to the next animation frame. This ensures the browser
@@ -611,10 +611,10 @@ export function closeModal(context: ModalContext) {
 function handleModalMapClick(target: HTMLElement, context: ModalContext) {
   const { allStalls, uiState } = context;
   const clickedGroupArea = target.closest(
-    '.stall-group-area',
+    '.stall-group-area'
   ) as HTMLElement | null;
   const clickedStallArea = target.closest(
-    '.stall-area:not(.stall-group-area)',
+    '.stall-area:not(.stall-group-area)'
   ) as HTMLElement | null;
   const currentStallId = uiState.selectedStallElement?.dataset.stallId;
 
@@ -647,7 +647,7 @@ export function initializeModalEventListeners(context: ModalContext) {
 
   elements.modalNavControls.addEventListener('click', (e) => {
     const button = (e.target as HTMLElement).closest(
-      '.modal-nav-btn',
+      '.modal-nav-btn'
     ) as HTMLButtonElement;
     if (button?.dataset.targetId) {
       openModal(button.dataset.targetId, context);
@@ -656,7 +656,7 @@ export function initializeModalEventListeners(context: ModalContext) {
 
   elements.modalVerticalStallList.addEventListener('click', (e) => {
     const item = (e.target as HTMLElement).closest(
-      '.modal-vertical-stall-item',
+      '.modal-vertical-stall-item'
     ) as HTMLElement;
     if (item?.dataset.stallId) {
       openModal(item.dataset.stallId, context);
@@ -724,7 +724,7 @@ export function initializeModalEventListeners(context: ModalContext) {
 
     // NEW Check: Prevent pan if clicking the currently active group area.
     const clickedGroupArea = target.closest(
-      '.stall-group-area',
+      '.stall-group-area'
     ) as HTMLElement | null;
     const currentStallId =
       context.uiState.selectedStallElement?.dataset.stallId;
@@ -752,7 +752,7 @@ export function initializeModalEventListeners(context: ModalContext) {
 
     // Get initial position from the transform property
     const transformMatrix = new DOMMatrix(
-      window.getComputedStyle(modalMagnifierStallLayer).transform,
+      window.getComputedStyle(modalMagnifierStallLayer).transform
     );
     modalState.initialBgX = transformMatrix.e;
     modalState.initialBgY = transformMatrix.f;
@@ -764,7 +764,7 @@ export function initializeModalEventListeners(context: ModalContext) {
     modalMagnifierStallLayer.style.transition = 'none';
 
     const highlight = modalMagnifierStallLayer.querySelector(
-      '.modal-stall-highlight',
+      '.modal-stall-highlight'
     );
     if (highlight) (highlight as HTMLElement).style.visibility = 'hidden';
 
@@ -798,6 +798,7 @@ export function initializeModalEventListeners(context: ModalContext) {
         target.closest('.promo-html-content') &&
         parentElement instanceof HTMLAnchorElement
       ) {
+        // 特殊情況：圖片外層用超連結(？)
         const regex = RegExp(/https?:\/\/.*\.(jpg|jpeg|png|gif|webp)(\?.*)?$/);
         const isImageHref = regex.test(parentElement?.href ?? '');
         if (isImageHref) {
@@ -806,6 +807,8 @@ export function initializeModalEventListeners(context: ModalContext) {
           e.stopPropagation();
           e.preventDefault();
         }
+      } else {
+        src = target.src;
       }
 
       openImageLightbox(src, target.alt, elements);
@@ -814,7 +817,7 @@ export function initializeModalEventListeners(context: ModalContext) {
 
   elements.imageLightboxClose.addEventListener(
     'click',
-    boundCloseImageLightbox,
+    boundCloseImageLightbox
   );
   // Also close by clicking the overlay background
   elements.imageLightbox.addEventListener('click', (e) => {
