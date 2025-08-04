@@ -33,14 +33,16 @@ export function renderStalls(
   allStalls: StallData[],
   elements: DOMElements,
   magnifierController: MagnifierController | null,
-  state: UIState
+  state: UIState,
 ) {
   // This set contains rows that are *permanently* grouped on all screen sizes.
-  const permanentlyGroupedRowIds = new Set(locateStalls.filter(r => r.isGrouped).map(r => r.id));
+  const permanentlyGroupedRowIds = new Set(
+    locateStalls.filter((r) => r.isGrouped).map((r) => r.id),
+  );
 
   // --- 1. Render all individual stall elements ---
   // They are created for logic, cloning, and desktop view. CSS will manage visibility.
-  allStalls.forEach(stall => {
+  allStalls.forEach((stall) => {
     if (!stall.coords) return;
 
     const area = document.createElement('div');
@@ -48,13 +50,13 @@ export function renderStalls(
     if (stall.promoData.length > 0) {
       area.classList.add('has-promo');
     }
-    
+
     // Stalls that are members of a permanently grouped row are hidden on the main map (on all screen sizes).
     const rowId = stall.id.substring(0, 1);
     if (permanentlyGroupedRowIds.has(rowId)) {
-        area.classList.add('is-grouped-member');
+      area.classList.add('is-grouped-member');
     }
-    
+
     area.dataset.stallId = stall.id;
     area.style.top = stall.coords.top;
     area.style.left = stall.coords.left;
@@ -75,7 +77,7 @@ export function renderStalls(
 
   // --- 2. Create the visible, clickable group areas for ALL rows ---
   // Their visibility will be controlled by CSS based on screen size and whether they are permanently grouped.
-  locateStalls.forEach(row => {
+  locateStalls.forEach((row) => {
     const groupArea = document.createElement('div');
     // Add both classes. `.stall-area` for base styles, `.stall-group-area` for group-specific styles.
     groupArea.className = 'stall-area stall-group-area';
@@ -86,13 +88,13 @@ export function renderStalls(
     groupArea.style.height = `${row.border.bottom - row.border.top}%`;
     groupArea.setAttribute('aria-label', `Row: ${row.id}`);
     groupArea.textContent = row.id;
-    
+
     // If a row is NOT permanently grouped, its group area should be hidden by default on desktop.
     // CSS will make it visible on mobile devices.
     if (!row.isGrouped) {
       groupArea.classList.add('mobile-only-group');
     }
-        
+
     elements.mapContainer.appendChild(groupArea);
 
     // For permanently grouped rows, ensure their group area is cloned into both
@@ -100,7 +102,7 @@ export function renderStalls(
     if (row.isGrouped) {
       // Add to main magnifier
       magnifierController?.addGroupArea(groupArea);
-      
+
       // Add to modal mini-map
       const modalGroupClone = groupArea.cloneNode(true) as HTMLElement;
       elements.modalMagnifierStallLayer.appendChild(modalGroupClone);
@@ -122,7 +124,7 @@ export function updateStallClass(
   className: string,
   force: boolean,
   magnifierController: MagnifierController | null,
-  state: UIState
+  state: UIState,
 ) {
   const stallId = stallElement.dataset.stallId;
   if (!stallId) return;
@@ -151,10 +153,16 @@ export function updateStallClass(
 export function clearSelection(
   elements: DOMElements,
   magnifierController: MagnifierController | null,
-  state: UIState
+  state: UIState,
 ) {
   if (state.selectedStallElement) {
-    updateStallClass(state.selectedStallElement, 'is-selected', false, magnifierController, state);
+    updateStallClass(
+      state.selectedStallElement,
+      'is-selected',
+      false,
+      magnifierController,
+      state,
+    );
   }
   state.selectedStallElement = null;
   elements.tooltip.classList.add('hidden');

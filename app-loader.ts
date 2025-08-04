@@ -13,7 +13,7 @@ import { criticalElementIds } from './dom-elements.ts';
  */
 export function initializeApp(runFn: () => void) {
   const allElementsPresent = () => {
-    return criticalElementIds.every(id => document.getElementById(id));
+    return criticalElementIds.every((id) => document.getElementById(id));
   };
 
   const attemptRun = () => {

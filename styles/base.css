@@ -14,7 +14,9 @@
 }
 
 body {
-  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+  font-family:
+    'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans',
+    Meiryo, sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
@@ -57,14 +59,21 @@ h1 {
   height: 16px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.legend-default { background-color: rgba(255, 226, 101, 0.8); }
-.legend-promo { background-color: rgba(19, 174, 231, 0.8); }
-.legend-search { background-color: rgba(184, 129, 225, 0.8); }
-.legend-selected { background-color: rgba(255, 69, 0, 0.8); }
-
+.legend-default {
+  background-color: rgba(255, 226, 101, 0.8);
+}
+.legend-promo {
+  background-color: rgba(19, 174, 231, 0.8);
+}
+.legend-search {
+  background-color: rgba(184, 129, 225, 0.8);
+}
+.legend-selected {
+  background-color: rgba(255, 69, 0, 0.8);
+}
 
 p {
   margin-bottom: 20px;
@@ -87,7 +96,9 @@ p {
   font-size: 1rem;
   border: 2px solid #ddd;
   border-radius: 25px;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
 }
 
 #search-input:focus {
@@ -105,12 +116,14 @@ p {
   border: 2px solid var(--primary-color);
   background-color: transparent;
   color: var(--primary-color);
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
   flex-shrink: 0;
 }
 
 #toggle-magnifier-btn:hover,
-#toggle-magnifier-btn[aria-pressed="true"] {
+#toggle-magnifier-btn[aria-pressed='true'] {
   background-color: var(--primary-color);
   color: white;
 }
@@ -191,7 +204,6 @@ p {
   color: #ccc;
 }
 
-
 /* --- Animations --- */
 @keyframes pulse-glow {
   0% {
@@ -210,12 +222,7 @@ p {
 
 .loading-text {
   font-weight: bold;
-  background: linear-gradient(
-    90deg,
-    #666,
-    #bbb,
-    #666
-  );
+  background: linear-gradient(90deg, #666, #bbb, #666);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;

@@ -1,0 +1,26 @@
+{
+  "recommendations": [
+    "angular.ng-template",
+    "cyrilletuzi.angular-schematics",
+    "johnpapa.angular2",
+    "formulahendry.auto-rename-tag",
+    "alefragnani.bookmarks",
+    "wmaurer.change-case",
+    "oouo-diogo-perdigao.docthis",
+    "vilicvane.es-quotes",
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "oliversturm.fix-json",
+    "nhoizey.gremlins",
+    "zignd.html-css-class-completion",
+    "visualstudioexptteam.intellicode-api-usage-examples",
+    "mariusalchimavicius.json-to-ts",
+    "csstools.postcss",
+    "esbenp.prettier-vscode",
+    "richie5um2.vscode-sort-json",
+    "stylelint.vscode-stylelint",
+    "bradlc.vscode-tailwindcss",
+    "gruntfuggly.todo-tree",
+    "infinity1207.angular2-switcher"
+  ]
+}

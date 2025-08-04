@@ -27,7 +27,7 @@ export interface PromoStall {
   promoTags: string[];
 }
 
-/** 
+/**
  * Unified data structure for a single stall, combining all sources of info.
  * This is the final object used by the application logic for rendering and interaction.
  */
@@ -65,7 +65,7 @@ export interface StallData {
   promoTags: string[];
 }
 
-/** 
+/**
  * Data for locating the start of a stall column on the map.
  * This is used as a template to calculate the exact position of each stall in that column.
  */

@@ -18,7 +18,7 @@ import { locateStalls } from './official-data.ts';
  * @param mapContainer The HTML element that contains the map.
  */
 function renderDebugBorders(mapContainer: HTMLElement) {
-  locateStalls.forEach(row => {
+  locateStalls.forEach((row) => {
     const borderEl = document.createElement('div');
     borderEl.className = 'debug-border';
     borderEl.style.top = `${row.border.top}%`;
@@ -42,7 +42,7 @@ function renderDebugBorders(mapContainer: HTMLElement) {
  */
 async function runApp() {
   const elements = getDOMElements();
-  
+
   // To enable debug borders, add `?debug=true` to the URL.
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('debug') === 'true') {
@@ -58,7 +58,8 @@ async function runApp() {
       resolve();
     } else {
       elements.mapImage.onload = () => resolve();
-      elements.mapImage.onerror = () => reject(new Error('Map image failed to load.'));
+      elements.mapImage.onerror = () =>
+        reject(new Error('Map image failed to load.'));
     }
   });
 
@@ -76,21 +77,31 @@ async function runApp() {
 
     // --- Initialization & Setup ---
     // Use a media query for a more robust responsive check based on viewport width.
-    const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
     const mobileCheck = isMobile(); // Check once and store the result.
-    
-    const context = { allStalls, elements, magnifierController: null as any, uiState, isMobile: mobileCheck };
+
+    const context = {
+      allStalls,
+      elements,
+      magnifierController: null as any,
+      uiState,
+      isMobile: mobileCheck,
+    };
 
     /** Handles opening the modal for a clicked stall or group area from any context (map or magnifier). */
     const handleAreaClick = (target: HTMLElement) => {
-      const clickedGroupArea = target.closest('.stall-group-area') as HTMLElement | null;
-      const clickedStallArea = target.closest('.stall-area:not(.stall-group-area)') as HTMLElement | null;
+      const clickedGroupArea = target.closest(
+        '.stall-group-area',
+      ) as HTMLElement | null;
+      const clickedStallArea = target.closest(
+        '.stall-area:not(.stall-group-area)',
+      ) as HTMLElement | null;
 
       if (clickedGroupArea?.dataset.rowId) {
         const rowId = clickedGroupArea.dataset.rowId;
         // Find the first stall in the row (top-most for vertical rows) and open its modal directly.
         const stallsInRow = allStalls
-          .filter(s => s.id.startsWith(rowId))
+          .filter((s) => s.id.startsWith(rowId))
           .sort((a, b) => b.num - a.num); // Sort by number descending.
 
         if (stallsInRow.length > 0) {
@@ -107,42 +118,43 @@ async function runApp() {
       elements.magnifierWrapper,
       elements.magnifier,
       elements.magnifierStallLayer,
-      { 
+      {
         prev: elements.magnifierRowIndicatorPrev,
         current: elements.magnifierRowIndicatorCurrent,
         next: elements.magnifierRowIndicatorNext,
       },
       elements.toggleMagnifierBtn,
       handleAreaClick, // Pass the centralized click handler
-      mobileCheck
+      mobileCheck,
     );
     context.magnifierController = magnifierController;
-
 
     // --- UI Rendering ---
     renderStalls(allStalls, elements, magnifierController, uiState);
     renderDebugBorders(elements.mapContainer);
-    
+
     // --- Event Listener Binding ---
     initializeModalEventListeners(context);
 
     elements.searchInput.addEventListener('input', () => {
       const searchTerm = elements.searchInput.value.toLowerCase().trim();
-      
+
       // A set to track which rows (by ID) have at least one matching stall.
       const matchingRowIds = new Set<string>();
 
-      allStalls.forEach(stall => {
-        const mainElement = document.querySelector(`.stall-area[data-stall-id="${stall.id}"]`) as HTMLElement;
+      allStalls.forEach((stall) => {
+        const mainElement = document.querySelector(
+          `.stall-area[data-stall-id="${stall.id}"]`,
+        ) as HTMLElement;
         if (!mainElement) return;
 
         let isMatch = false;
         if (searchTerm !== '') {
-          const hasPromoUserMatch = stall.promoData.some(promo =>
-            promo.promoUser.toLowerCase().includes(searchTerm)
+          const hasPromoUserMatch = stall.promoData.some((promo) =>
+            promo.promoUser.toLowerCase().includes(searchTerm),
           );
-          const hasTagMatch = stall.promoTags.some(tag =>
-            tag.toLowerCase().includes(searchTerm)
+          const hasTagMatch = stall.promoTags.some((tag) =>
+            tag.toLowerCase().includes(searchTerm),
           );
 
           isMatch =
@@ -151,11 +163,17 @@ async function runApp() {
             hasPromoUserMatch ||
             hasTagMatch;
         }
-        
+
         // 1. Update the class on the individual stall element.
         // This is crucial for the magnifier and the modal views to reflect the search result,
         // even if the element is hidden on the main map (e.g., for grouped rows).
-        updateStallClass(mainElement, 'is-search-match', isMatch, magnifierController, uiState);
+        updateStallClass(
+          mainElement,
+          'is-search-match',
+          isMatch,
+          magnifierController,
+          uiState,
+        );
 
         // 2. If a match is found, record its row ID.
         if (isMatch) {
@@ -164,12 +182,17 @@ async function runApp() {
       });
 
       // 3. Update the visible group area elements based on whether any stall in that row matched.
-      locateStalls.forEach(row => {
-          const groupAreaElements = document.querySelectorAll(`.stall-group-area[data-row-id="${row.id}"]`) as NodeList;
-          groupAreaElements.forEach((groupAreaElement: Node) => {
-              const hasMatch = matchingRowIds.has(row.id);
-              (groupAreaElement as HTMLElement).classList.toggle('is-search-match', hasMatch);  
-          })
+      locateStalls.forEach((row) => {
+        const groupAreaElements = document.querySelectorAll(
+          `.stall-group-area[data-row-id="${row.id}"]`,
+        ) as NodeList;
+        groupAreaElements.forEach((groupAreaElement: Node) => {
+          const hasMatch = matchingRowIds.has(row.id);
+          (groupAreaElement as HTMLElement).classList.toggle(
+            'is-search-match',
+            hasMatch,
+          );
+        });
       });
     });
 
@@ -182,11 +205,11 @@ async function runApp() {
       if (target.closest('#magnifier-wrapper')) {
         return;
       }
-      
+
       // For touch events on the map, prevent default to avoid scrolling/zooming
       // when the user intended to tap a stall.
       if (e.type === 'touchstart') {
-          e.preventDefault();
+        e.preventDefault();
       }
 
       handleAreaClick(target);
@@ -194,12 +217,22 @@ async function runApp() {
 
     // --- Set Instructions and Device-Specific Listeners ---
     if (mobileCheck) {
-      elements.instructionsEl.textContent = '點擊按鈕可用放大鏡，或直接點擊攤位查看宣傳。';
+      elements.instructionsEl.textContent =
+        '點擊按鈕可用放大鏡，或直接點擊攤位查看宣傳。';
       // Use touchstart for a responsive feel and to prevent default page actions.
-      elements.mapContainer.addEventListener('mousedown', handleMainMapInteraction, { passive: false });
-      elements.mapContainer.addEventListener('touchstart', handleMainMapInteraction, { passive: false });
+      elements.mapContainer.addEventListener(
+        'mousedown',
+        handleMainMapInteraction,
+        { passive: false },
+      );
+      elements.mapContainer.addEventListener(
+        'touchstart',
+        handleMainMapInteraction,
+        { passive: false },
+      );
     } else {
-      elements.instructionsEl.textContent = '點擊按鈕顯示/隱藏放大鏡並拖曳。點擊攤位(含放大鏡內)可看宣傳。';
+      elements.instructionsEl.textContent =
+        '點擊按鈕顯示/隱藏放大鏡並拖曳。點擊攤位(含放大鏡內)可看宣傳。';
 
       // Desktop-only hover tooltips
       document.addEventListener('mousemove', (e: MouseEvent) => {
@@ -213,9 +246,12 @@ async function runApp() {
         const stallArea = target.closest('.stall-area:not(.stall-group-area)');
         if (stallArea && !uiState.selectedStallElement) {
           const stallId = (stallArea as HTMLElement).dataset.stallId;
-          const stall = allStalls.find(s => s.id === stallId);
+          const stall = allStalls.find((s) => s.id === stallId);
           if (stall) {
-            const promoUsers = stall.promoData?.map(o => o.promoUser).filter((value, index, self) => self.indexOf(value) === index).join(',');
+            const promoUsers = stall.promoData
+              ?.map((o) => o.promoUser)
+              .filter((value, index, self) => self.indexOf(value) === index)
+              .join(',');
             elements.tooltip.innerHTML = `<strong>${stall.stallTitle}</strong><br><small>${stall.id}${promoUsers ? ` / ${promoUsers}` : ''}</small>`;
             elements.tooltip.classList.remove('hidden');
           }
@@ -228,15 +264,18 @@ async function runApp() {
           elements.tooltip.classList.add('hidden');
         }
       });
-      
-      // Use mousedown for a responsive click feel on desktop.
-      elements.mapContainer.addEventListener('mousedown', handleMainMapInteraction);
-    }
 
+      // Use mousedown for a responsive click feel on desktop.
+      elements.mapContainer.addEventListener(
+        'mousedown',
+        handleMainMapInteraction,
+      );
+    }
   } catch (error) {
-    console.error("Failed to initialize app:", error);
+    console.error('Failed to initialize app:', error);
     elements.instructionsEl.classList.remove('loading-text');
-    elements.instructionsEl.textContent = '地圖或資料載入失敗，請重新整理頁面。';
+    elements.instructionsEl.textContent =
+      '地圖或資料載入失敗，請重新整理頁面。';
   }
 }
 
