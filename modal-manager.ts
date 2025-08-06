@@ -13,6 +13,7 @@ import {
 } from './navigation.ts';
 import { locateStalls } from './official-data.ts';
 import { clearSelection, updateStallClass, UIState } from './ui-manager.ts';
+import DOMPurify from 'dompurify';
 
 /** A context object to pass dependencies into modal functions. */
 interface ModalContext {
@@ -373,26 +374,30 @@ export function openModal(stallId: string, context: ModalContext) {
   stall.promoData.forEach((promo, index) => {
     if (index > 0) bodyHTML += `<div class="promo-entry-separator"></div>`;
     const avatar = promo.promoAvatar
-      ? promo.promoAvatar
+      ? DOMPurify.sanitize(promo.promoAvatar)
       : 'https://images.plurk.com/3rbw6tg1lA5dEGpdKTL8j1.png';
 
     let tagsHTML = '';
     if (promo.promoTags && promo.promoTags.length > 0) {
       tagsHTML += '<div class="promo-tags-container">';
       promo.promoTags.forEach((tag) => {
-        tagsHTML += `<span class="promo-tag">#${tag}</span>`;
+        const promoTag = DOMPurify.sanitize(tag);
+        tagsHTML += `<span class="promo-tag">#${promoTag}</span>`;
       });
       tagsHTML += '</div>';
     }
 
+    const promoUser = DOMPurify.sanitize(promo.promoUser);
+    const promoHTML = DOMPurify.sanitize(promo.promoHTML);
+
     bodyHTML += `
       <div class="promo-entry">
           <div class="modal-user-info">
-              <img src="${avatar}" alt="${promo.promoUser}" class="modal-avatar">
-              <span class="modal-username">${promo.promoUser}</span>
+              <img src="${avatar}" alt="${promoUser}" class="modal-avatar">
+              <span class="modal-username">${promoUser}</span>
           </div>
           ${tagsHTML}
-          <div class="promo-html-content">${promo.promoHTML}</div>
+          <div class="promo-html-content">${promoHTML}</div>
       </div>`;
   });
   elements.modalBody.innerHTML = bodyHTML || '暫無宣傳資訊。';
