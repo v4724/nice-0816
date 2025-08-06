@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "build-cloudflare": "vite build",
+    "build-gh-pages": "vite build --mode gh-pages",
+    "deploy-gh": "npm run build-gh-pages && gh-pages -d dist",
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.1.0"
