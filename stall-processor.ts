@@ -17,7 +17,7 @@ const locateStallMap = new Map(locateStalls.map((s) => [s.id, s]));
  */
 function parsePromoLinks(
   promoUser: string,
-  linksStr: string | undefined,
+  linksStr: string | undefined
 ): PromoLink[] {
   if (!linksStr) return [];
   return linksStr
@@ -28,7 +28,7 @@ function parsePromoLinks(
       return { text, href };
     })
     .filter(
-      (link): link is PromoLink => link !== null && !!link.text && !!link.href,
+      (link): link is PromoLink => link !== null && !!link.text && !!link.href
     ); // Filter out invalid entries.
 }
 
@@ -74,7 +74,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
       // If we can't find a template or the number is invalid, we can't calculate a position.
       if (!locateStall || isNaN(num)) {
         console.warn(
-          `Could not calculate position for stall ID: ${id}. Skipping base creation.`,
+          `Could not calculate position for stall ID: ${id}. Skipping base creation.`
         );
         return;
       }
@@ -192,6 +192,10 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
       }
 
       // Create the new entry in the map.
+      let stallImg = rawStall.stallImg || undefined;
+      if (stallImg && stallImg.startsWith('assets/2025/')) {
+        stallImg = `https://cdn.jsdelivr.net/gh/v4724/nice-0816@d24cd07/${stallImg}`;
+      }
       stallEntry = {
         id: id,
         num: num,
@@ -199,7 +203,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
         coords: myCoords,
         numericCoords: myNumericCoords,
         stallTitle: rawStall.stallTitle || 'N/A',
-        stallImg: rawStall.stallImg || undefined,
+        stallImg: stallImg,
         stallLink: rawStall.stallLink || undefined,
         promoData: [], // Initialize with an empty array for promotions.
         promoTags: [],
