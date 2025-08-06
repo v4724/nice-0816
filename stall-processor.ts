@@ -5,6 +5,7 @@
 
 import { locateStalls } from './official-data.ts';
 import type { StallData, PromoLink, PromoStall } from './types.ts';
+import DOMPurify from 'dompurify';
 
 // Convert the locateStalls array into a Map for efficient O(1) lookups by stall letter.
 const locateStallMap = new Map(locateStalls.map((s) => [s.id, s]));
@@ -42,7 +43,10 @@ function parsePromoTags(tagsStr: string | undefined): string[] {
   if (!tagsStr) return [];
   return tagsStr
     .split(';')
-    .map((t) => t.trim())
+    .map((t) => {
+      const promoTag = DOMPurify.sanitize(t?.trim() ?? '');
+      return promoTag;
+    })
     .filter((t) => t);
 }
 
@@ -214,13 +218,16 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
     // --- Promotion Data Aggregation ---
     // If the current row contains promotion data, create a PromoStall object
     // and add it to the stall's promoData array.
-    const promoUser = rawStall.promoUser || '';
+    const promoUser = DOMPurify.sanitize(rawStall.promoUser || '');
+    const promoAvatar = DOMPurify.sanitize(rawStall.promoAvatar || '');
+    const promoHTML = DOMPurify.sanitize(rawStall.promoHTML || '');
+
     if (promoUser) {
       const promo: PromoStall = {
         stallId: id,
         promoUser: promoUser,
-        promoAvatar: rawStall.promoAvatar || '',
-        promoHTML: rawStall.promoHTML || '',
+        promoAvatar: promoAvatar,
+        promoHTML: promoHTML,
         promoLinks: parsePromoLinks(promoUser, rawStall.promoLinks),
         promoTags: parsePromoTags(rawStall.promoTags),
       };
