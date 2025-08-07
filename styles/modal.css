@@ -132,6 +132,16 @@
   transition: opacity 0.5s ease-in-out, filter 0.5s ease; /* 載入後淡入、關掉模糊 */
 }
 
+.official-stall-image.loaded {
+  min-width: unset;
+  min-height: unset;
+  height: auto;
+  width: auto;
+
+  opacity: 1; /* 完全顯示 */
+  filter: blur(0); /* 關掉模糊 */
+}
+
 .official-stall-image:hover {
   opacity: 0.85;
 }
