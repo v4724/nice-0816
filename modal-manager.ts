@@ -365,7 +365,7 @@ export function openModal(stallId: string, context: ModalContext) {
 
   // Populate Body
   let bodyHTML = stall.stallImg
-    ? `<img src="${stall.stallImg}" alt="Official Promo Image: ${stall.stallTitle}" class="official-stall-image" loading="lazy" onload="this.style.opacity='1'; this.style.filter='blur(0)'"/>`
+    ? `<img src="${stall.stallImg}" alt="Official Promo Image: ${stall.stallTitle}" class="official-stall-image" loading="lazy" onload="this.style.opacity='1'; this.style.filter='blur(0)'; this.style.minHeight='unset'; this.style.height='auto';"/>`
     : '';
   if (stall.stallImg && stall.promoData.length > 0)
     bodyHTML += `<hr class="promo-section-separator">`;
