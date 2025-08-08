@@ -7,7 +7,7 @@
 // IMPORTANT: Replace this with your Google Sheet's "Publish to web" CSV URL.
 // In Google Sheets: File > Share > Publish to web > Select a sheet & "Comma-separated values (.csv)" > Publish.
 const GOOGLE_SHEET_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSekTVRYingSPdcpjSzVazPOJRJr_SxAyQV1lvqvgzvoW6BtnP8aEoVOo1sZSF6tJ27tLXv7JvxCPP9/pub?output=csv';
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSekTVRYingSPdcpjSzVazPOJRJr_SxAyQV1lvqvgzvoW6BtnP8aEoVOo1sZSF6tJ27tLXv7JvxCPP9/pub?output=csv&gid=0&single=true';
 
 /**
  * A robust CSV parser that handles quoted fields, double quotes inside fields,
@@ -109,13 +109,13 @@ export async function fetchStallData(): Promise<Record<string, string>[]> {
     }
     // Log non-critical server errors and proceed to fallback.
     console.warn(
-      `Initial fetch with timestamp failed with status: ${response.status}. Retrying without timestamp.`,
+      `Initial fetch with timestamp failed with status: ${response.status}. Retrying without timestamp.`
     );
   } catch (error) {
     // Catches network errors (e.g., DNS, CORS).
     console.warn(
       'Initial fetch with timestamp failed with a network error. Retrying without timestamp.',
-      error,
+      error
     );
   }
 
@@ -126,7 +126,7 @@ export async function fetchStallData(): Promise<Record<string, string>[]> {
     if (!fallbackResponse.ok) {
       // If the fallback also fails, this is a critical error.
       throw new Error(
-        `Fallback fetch failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`,
+        `Fallback fetch failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`
       );
     }
     const csvText = await fallbackResponse.text();
@@ -135,7 +135,7 @@ export async function fetchStallData(): Promise<Record<string, string>[]> {
     // If both attempts fail, log the final error and return empty.
     console.error(
       'Error fetching or parsing stall data after fallback:',
-      error,
+      error
     );
     return [];
   }
