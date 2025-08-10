@@ -220,7 +220,19 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
     // and add it to the stall's promoData array.
     const promoUser = DOMPurify.sanitize(rawStall.promoUser || '');
     const promoAvatar = DOMPurify.sanitize(rawStall.promoAvatar || '');
-    const promoHTML = DOMPurify.sanitize(rawStall.promoHTML || '');
+    let promoHTML = rawStall.promoHTML || '';
+    if (
+      promoHTML.includes('iframe') &&
+      promoHTML.includes('https://www.facebook.com/plugins')
+    ) {
+      promoHTML = DOMPurify.sanitize(promoHTML || '', {
+        ADD_TAGS: ['iframe'],
+        FORBID_TAGS: [], // 確保不會誤封 iframe
+        ALLOWED_URI_REGEXP: /^https:\/\/(www\.)?facebook\.com\/plugins\//i,
+      });
+    } else {
+      promoHTML = DOMPurify.sanitize(promoHTML || '');
+    }
 
     if (promoUser) {
       const promo: PromoStall = {
