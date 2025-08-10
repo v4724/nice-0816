@@ -33,6 +33,30 @@ function parsePromoLinks(
     ); // Filter out invalid entries.
 }
 
+// FB 宣傳車，手動將 width, height 加到 style 上
+function preserveSizeAttributes(html: string) {
+  // 建立 DOM 方便取屬性
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+
+  temp.querySelectorAll('iframe').forEach((el: Element) => {
+    const width = el.getAttribute('width');
+    const height = el.getAttribute('height');
+
+    // 如果有 width / height，就加到 style
+    if (width) {
+      (el as HTMLIFrameElement).style.width = `100%`;
+      el.removeAttribute('width');
+    }
+    if (height) {
+      (el as HTMLIFrameElement).style.height = `${height}px`;
+      el.removeAttribute('height');
+    }
+  });
+
+  return temp.innerHTML;
+}
+
 /**
  * Parses a string of semi-colon delimited tags into an array of string[].
  * Expected format: "tag Text 1;Link Text 2"
@@ -225,6 +249,7 @@ export function processStalls(rawData: Record<string, string>[]): StallData[] {
       promoHTML.includes('iframe') &&
       promoHTML.includes('https://www.facebook.com/plugins')
     ) {
+      promoHTML = preserveSizeAttributes(promoHTML);
       promoHTML = DOMPurify.sanitize(promoHTML || '', {
         ADD_TAGS: ['iframe'],
         FORBID_TAGS: [], // 確保不會誤封 iframe
