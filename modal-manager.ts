@@ -14,6 +14,16 @@ import {
 import { locateStalls } from './official-data.ts';
 import { clearSelection, updateStallClass, UIState } from './ui-manager.ts';
 
+declare global {
+  interface Window {
+    instgrm?: {
+      Embeds: {
+        process: () => void;
+      };
+    };
+  }
+}
+
 /** A context object to pass dependencies into modal functions. */
 interface ModalContext {
   allStalls: StallData[];
@@ -396,6 +406,11 @@ export function openModal(stallId: string, context: ModalContext) {
       </div>`;
   });
   elements.modalBody.innerHTML = bodyHTML || '暫無宣傳資訊。';
+
+  // 動態嵌入 IG 貼文
+  if (window.instgrm) {
+    window.instgrm.Embeds.process();
+  }
 
   // Populate Footer Links
   elements.modalFooter.innerHTML = '';
