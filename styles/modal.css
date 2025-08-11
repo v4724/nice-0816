@@ -201,6 +201,11 @@
   opacity: 0.85;
 }
 
+.promo-html-content .text_holder img {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 #modal-body a {
   color: var(--primary-color);
   font-weight: bold;
