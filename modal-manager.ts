@@ -21,6 +21,11 @@ declare global {
         process: () => void;
       };
     };
+    twttr?: {
+      widgets: {
+        load: () => void;
+      };
+    };
   }
 }
 
@@ -410,6 +415,11 @@ export function openModal(stallId: string, context: ModalContext) {
   // 動態嵌入 IG 貼文
   if (window.instgrm) {
     window.instgrm.Embeds.process();
+  }
+
+  // 動態嵌入 twitter 貼文
+  if (window.twttr) {
+    window.twttr.widgets.load();
   }
 
   // Populate Footer Links
