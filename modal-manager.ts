@@ -23,7 +23,7 @@ declare global {
     };
     twttr?: {
       widgets: {
-        load: () => void;
+        load: (el: HTMLElement) => void;
       };
     };
   }
@@ -419,7 +419,9 @@ export function openModal(stallId: string, context: ModalContext) {
 
   // 動態嵌入 twitter 貼文
   if (window.twttr) {
-    window.twttr.widgets.load();
+    window.twttr?.widgets?.load(
+      document.getElementsByClassName('modal-wrapper')[0] as HTMLElement
+    );
   }
 
   // Populate Footer Links
